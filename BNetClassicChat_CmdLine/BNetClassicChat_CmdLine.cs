@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,8 @@ namespace BNetClassicChat_CmdLine
         static void Main(string[] args)
         {
             var lastRequestId = 0;
-            var apiKey = "test";
+            var apiKey = File.ReadLines("Config/apikey.txt");
+
             //BNetClassicChatClient client = new BNetClassicChatClient("blargh");
             using (var ws = new WebSocket("wss://connect-bot.classic.blizzard.com/v1/rpc/chat", "json"))
             {
@@ -30,6 +32,7 @@ namespace BNetClassicChat_CmdLine
                 ws.OnError += (sender, e) => { throw e.Exception; };
                 ws.OnClose += (sender, e) => { Console.WriteLine("Closed!"); };
                 ws.Connect();
+                ws.Close();
             }
             Console.ReadLine();
         }
