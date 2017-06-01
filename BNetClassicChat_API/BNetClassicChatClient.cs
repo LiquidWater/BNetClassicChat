@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,43 +13,49 @@ namespace BNetClassicChat_API
     public class BNetClassicChatClient
     {
         private string APIKey;
-        private ClientWebSocket socket;
+        private ClientWebSocket socket = new ClientWebSocket();
         private int requestid = 0;
         private CancellationTokenSource sourcetoken = new CancellationTokenSource();
         private CancellationToken passaroundtoken;
+        private ArraySegment<byte> inputbuffer;
 
         public BNetClassicChatClient(string apikey = null)
         {
-            if (apikey == null)
-            {
-                throw new ArgumentException();
-            }
-            APIKey = apikey;
+            APIKey = apikey ?? throw new ArgumentException();
             passaroundtoken = sourcetoken.Token;
-            socket =  new ClientWebSocket();
-            socket.ConnectAsync(new Uri("wss://connect-bot.classic.blizzard.com/v1/ rpc/chat"), passaroundtoken);
-            Console.WriteLine(socket.State);
+            inputbuffer = ClientWebSocket.CreateClientBuffer(1024,1024);
+            Connect().Wait();
         }
 
-        public void Authenticate()
+        private async Task Connect()
         {
-            RequestResponseModel request = new RequestResponseModel();
-            request.Command = "Botapiauth.AuthenticateRequest";
-            request.RequestId = requestid++;
-            request.Payload = new Dictionary<string, string>();
-            request.Payload.Add("api_key", APIKey);
+            //Step 1: Begin C# websocket connection
+            await socket.ConnectAsync(Constants.TargetURI, passaroundtoken);
 
-            string serializedObject = JsonConvert.SerializeObject(request);
-            ArraySegment<byte> buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(serializedObject));
+            //Step 2: Authenticate with server
+            RequestResponseModel authrequest = new RequestResponseModel();
+            authrequest.Command = "Botapiauth.AuthenticateRequest";
+            authrequest.RequestId = requestid++;
+            authrequest.Payload = new Dictionary<string, string>{{ "api_key", APIKey }};
 
-            socket.SendAsync(buffer, WebSocketMessageType.Text, false, passaroundtoken);
-            socket.ReceiveAsync(buffer, passaroundtoken);
-            Console.WriteLine(buffer);
-            return;
-        }
+            string serializedobject = JsonConvert.SerializeObject(authrequest);
+            ArraySegment<byte> outputbuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(serializedobject));
 
-        public void Connect()
-        {
+            await socket.SendAsync(outputbuffer, WebSocketMessageType.Text, false, passaroundtoken);
+            await socket.ReceiveAsync(inputbuffer, passaroundtoken);
+
+            //If the socket is suddenly closed, probably bad API key
+            if (socket.State != WebSocketState.Open){
+                throw new WebSocketException("Socket no longer open with state " + socket.State);
+            }
+
+            string response = Encoding.UTF8.GetString(inputbuffer.Array);
+            RequestResponseModel authresponse = JsonConvert.DeserializeObject<RequestResponseModel>(response);
+
+            if (authresponse.Status.area != 0 || authresponse.Status.code != 0)
+                throw new Exception("Response error. area: " + authresponse.Status.area + " code: " + authresponse.Status.code);
+
+            //Step 3: Connect to chat
             return;
         }
 
