@@ -1,66 +1,72 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 using BNetClassicChat_API.Resources;
 using Newtonsoft.Json;
 using System.Threading;
+using WebSocketSharp;
 
 //Entry point for the API
 namespace BNetClassicChat_API
 {
     public class BNetClassicChatClient
     {
+        private int requestID = 0;
         private string APIKey;
-        private ClientWebSocket socket = new ClientWebSocket();
-        private int requestid = 0;
-        private CancellationTokenSource sourcetoken = new CancellationTokenSource();
-        private CancellationToken passaroundtoken;
-        private ArraySegment<byte> inputbuffer;
+        private WebSocket socket = new WebSocket(Constants.TargetURL, "json");
 
-        public BNetClassicChatClient(string apikey = null)
+        //Event handlers for signaling subscribers for incoming messages
+        public event EventHandler OnChatMessage;
+
+        public BNetClassicChatClient(string apikey)
         {
-            APIKey = apikey ?? throw new ArgumentException();
-            passaroundtoken = sourcetoken.Token;
-            inputbuffer = ClientWebSocket.CreateClientBuffer(1024,1024);
-            Connect().Wait();
+            //Basic input sanitation
+            if (apikey != null)
+                APIKey = apikey;
+            else
+                throw new ArgumentNullException();
+
+            //Defining behaviour to comply with bnet protocol
+            socket.OnOpen += (sender, e) =>
+            {
+                Console.WriteLine("Connected!");
+                var auth = "{\n" +
+                    "command: Botapiauth.AuthenticateRequest,\n" +
+                    "request_id: " + requestID + ",\n" +
+                    "payload:\n" +
+                    " {api_key: " + APIKey + "\n}" +
+                    "\n}";
+                socket.Send(auth);
+            };
+
+            socket.OnMessage += (sender, e) =>
+            {
+                Console.WriteLine("Message recieved! " + e.Data );
+ 
+            };
+
+            socket.OnClose += (sender, e) =>
+            {
+                Console.WriteLine("Disconnected!");
+            };
+
+            socket.OnError += (sender, e) =>
+            {
+                Console.WriteLine("Error " + e.Message);
+                throw e.Exception;
+            };
         }
 
-        private async Task Connect()
+        public void Connect()
         {
-            //Step 1: Begin C# websocket connection
-            await socket.ConnectAsync(Constants.TargetURI, passaroundtoken);
-
-            //Step 2: Authenticate with server
-            RequestResponseModel authrequest = new RequestResponseModel();
-            authrequest.Command = "Botapiauth.AuthenticateRequest";
-            authrequest.RequestId = requestid++;
-            authrequest.Payload = new Dictionary<string, string>{{ "api_key", APIKey }};
-
-            string serializedobject = JsonConvert.SerializeObject(authrequest);
-            ArraySegment<byte> outputbuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(serializedobject));
-
-            await socket.SendAsync(outputbuffer, WebSocketMessageType.Text, false, passaroundtoken);
-            await socket.ReceiveAsync(inputbuffer, passaroundtoken);
-
-            //If the socket is suddenly closed, probably bad API key
-            if (socket.State != WebSocketState.Open){
-                throw new WebSocketException("Socket no longer open with state " + socket.State);
-            }
-
-            string response = Encoding.UTF8.GetString(inputbuffer.Array);
-            RequestResponseModel authresponse = JsonConvert.DeserializeObject<RequestResponseModel>(response);
-
-            if (authresponse.Status.area != 0 || authresponse.Status.code != 0)
-                throw new Exception("Response error. area: " + authresponse.Status.area + " code: " + authresponse.Status.code);
-
-            //Step 3: Connect to chat
+            socket.Connect();
             return;
         }
 
         public void Disconnect()
         {
+            socket.Close(CloseStatusCode.Normal, "Goodbye");
             return;
         }
 
