@@ -1,60 +1,66 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using BNetClassicChat_API.Resources;
+using BNetClassicChat_API.Resources.EArgs;
 using Newtonsoft.Json;
-using System.Threading;
 using WebSocketSharp;
 
-//Entry point for the API
 namespace BNetClassicChat_API
 {
     public class BNetClassicChatClient
     {
         private int requestID = 0;
-        private string APIKey;
+        private string apiKey;
         private WebSocket socket = new WebSocket(Constants.TargetURL, "json");
 
-        //Event handlers for signaling subscribers for incoming messages
-        public event EventHandler OnChatMessage;
+        //Subscribers must handle events in order to recieve messages
+        public event EventHandler<ChannelJoinArgs> OnChannelJoin;
+        public event EventHandler<ChatMessageArgs> OnChatMessage;
+        public event EventHandler<UserJoinArgs> OnUserJoin;
+        public event EventHandler<UserLeaveArgs> OnUserLeave;
 
         public BNetClassicChatClient(string apikey)
         {
             //Basic input sanitation
             if (apikey != null)
-                APIKey = apikey;
+                apiKey = apikey;
             else
                 throw new ArgumentNullException();
 
             //Defining behaviour to comply with bnet protocol
-            socket.OnOpen += (sender, e) =>
+            socket.OnOpen += (sender, args) =>
             {
-                Console.WriteLine("Connected!");
+                //Step 1: Authenticate with server using API key
+                Debug.WriteLine("Connected!\n Attempting to authenticate...");
+
                 var auth = "{\n" +
                     "command: Botapiauth.AuthenticateRequest,\n" +
                     "request_id: " + requestID + ",\n" +
                     "payload:\n" +
-                    " {api_key: " + APIKey + "\n}" +
+                    " {api_key: " + apiKey + "\n}" +
                     "\n}";
                 socket.Send(auth);
+
+                //Step 2: Once auth accept response is received, attempt to connect to chat
+                Debug.WriteLine("Authenticated!\n Attempting to connect to chat...");
+
+                Debug.WriteLine("Connected to chat!");
             };
 
-            socket.OnMessage += (sender, e) =>
+            socket.OnMessage += (sender, args) =>
             {
-                Console.WriteLine("Message recieved! " + e.Data );
- 
+                Debug.WriteLine("Message recieved! " + args.Data );
             };
 
-            socket.OnClose += (sender, e) =>
+            socket.OnClose += (sender, args) =>
             {
-                Console.WriteLine("Disconnected!");
+                Debug.WriteLine("Disconnected!");
             };
 
-            socket.OnError += (sender, e) =>
+            socket.OnError += (sender, args) =>
             {
-                Console.WriteLine("Error " + e.Message);
-                throw e.Exception;
+                Debug.WriteLine("Error " + args.Message);
+                throw args.Exception;
             };
         }
 
@@ -75,7 +81,22 @@ namespace BNetClassicChat_API
             return;
         }
 
-        public void SendWhisper()
+        public void SendWhisper(string msg, string userid)
+        {
+            return;
+        }
+
+        public void BanUser(string userid)
+        {
+            return;
+        }
+
+        public void UnbanUser(string userid)
+        {
+            return;
+        }
+
+        public void KickUser(string userid)
         {
             return;
         }
