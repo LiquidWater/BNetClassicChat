@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 using BNetClassicChat_API.Resources;
 using BNetClassicChat_API.Resources.EArgs;
 using Newtonsoft.Json;
@@ -13,6 +14,39 @@ namespace BNetClassicChat_API
         private string apiKey;
         private WebSocket socket = new WebSocket(Constants.TargetURL, "json");
 
+        #region InternalMessageHandlers
+        //TODO: Maybe use a more futureproof method of parsing instead of dict to func mapping
+        private Dictionary<string, Action> msgHandlers = new Dictionary<string, Action>()
+        {
+            {"Botapiauth.AuthenticateResponse", _onauthresponse_},
+            {"Botapichat.ConnectResponse", _onchatconnectresponse_},
+
+            {"Botapichat.ConnectEventRequest", _onchatconnect_},
+            {"Botapichat.DisconnectEventRequest", _onchatdisconnect_}
+        };
+
+        private static void _onauthresponse_()
+        {
+
+        }
+
+        private static void _onchatconnectresponse_()
+        {
+
+        }
+
+        private static void _onchatconnect_()
+        {
+
+        }
+
+        private static void _onchatdisconnect_()
+        {
+
+        }
+        #endregion
+
+        #region PublicMethodsAndVars
         //Subscribers must handle events in order to recieve messages
         public event EventHandler<ChannelJoinArgs> OnChannelJoin;
         public event EventHandler<ChatMessageArgs> OnChatMessage;
@@ -31,7 +65,7 @@ namespace BNetClassicChat_API
             socket.OnOpen += (sender, args) =>
             {
                 //Step 1: Authenticate with server using API key
-                Debug.WriteLine("Connected!\n Attempting to authenticate...");
+                Debug.WriteLine("Connected! Attempting to authenticate...");
 
                 var auth = "{\n" +
                     "command: Botapiauth.AuthenticateRequest,\n" +
@@ -42,14 +76,14 @@ namespace BNetClassicChat_API
                 socket.Send(auth);
 
                 //Step 2: Once auth accept response is received, attempt to connect to chat
-                Debug.WriteLine("Authenticated!\n Attempting to connect to chat...");
+                Debug.WriteLine("Authenticated! Attempting to enter chat...");
 
-                Debug.WriteLine("Connected to chat!");
+                Debug.WriteLine("Entered chat!");
             };
 
             socket.OnMessage += (sender, args) =>
             {
-                Debug.WriteLine("Message recieved! " + args.Data );
+                Debug.WriteLine("Message recieved! " + args.Data);
             };
 
             socket.OnClose += (sender, args) =>
@@ -100,5 +134,6 @@ namespace BNetClassicChat_API
         {
             return;
         }
+        #endregion
     }
 }
