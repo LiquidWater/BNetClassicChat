@@ -17,10 +17,12 @@ namespace BNetClassicChat_CmdLine
                 Console.WriteLine("Joined channel " + e.ChannelName);
             };
 
-            //client.Disconnect();
+            Console.WriteLine("Press any key to disconnect");
+            Console.ReadKey();
+            client.Disconnect();
 
             Console.WriteLine("Press any key to exit");
-            Console.ReadLine();
+            Console.ReadKey();
         }
     }
 }

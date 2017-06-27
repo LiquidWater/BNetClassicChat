@@ -49,9 +49,7 @@
   <ItemGroup>
     <Compile Include="BNetClassicChatClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources\AreaCode.cs" />
     <Compile Include="Resources\Constants.cs" />
-    <Compile Include="Resources\ErrorCode.cs" />
     <Compile Include="Resources\EArgs\ChannelJoinArgs.cs" />
     <Compile Include="Resources\EArgs\ChatMessageArgs.cs" />
     <Compile Include="Resources\EArgs\UserJoinArgs.cs" />

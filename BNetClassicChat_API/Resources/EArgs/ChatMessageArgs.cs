@@ -14,10 +14,11 @@ namespace BNetClassicChat_API.Resources.EArgs
             MSG_EMOTE = 5
         };
 
-        private string userid, message;
+        private UInt64 userid;
+        private string message;
         private MessageSource msgtype;
 
-        internal ChatMessageArgs(string uid, string msg, string type)
+        internal ChatMessageArgs(UInt64 uid, string msg, string type)
         {
             userid = uid;
             message = msg;
@@ -43,7 +44,7 @@ namespace BNetClassicChat_API.Resources.EArgs
             }
         }
 
-        public string UserId
+        public UInt64 UserId
         {
             get { return userid; }
         }
