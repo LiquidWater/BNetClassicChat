@@ -5,6 +5,7 @@ using BNetClassicChat_API.Resources;
 using BNetClassicChat_API.Resources.EArgs;
 using Newtonsoft.Json;
 using WebSocketSharp;
+using BNetClassicChat_API.Resources.Models;
 
 namespace BNetClassicChat_API
 {
@@ -13,34 +14,62 @@ namespace BNetClassicChat_API
         private int requestID = 0;
         private string apiKey;
         private WebSocket socket = new WebSocket(Constants.TargetURL, "json");
+        //TODO: Maybe use a more futureproof method of parsing instead of dict to func mapping
+        private Dictionary<string, Action<RequestResponseModel>> msgHandlers;
 
         #region InternalMessageHandlers
-        //TODO: Maybe use a more futureproof method of parsing instead of dict to func mapping
-        private Dictionary<string, Action> msgHandlers = new Dictionary<string, Action>()
+        private void _onauthresponse_(RequestResponseModel msg)
         {
-            {"Botapiauth.AuthenticateResponse", _onauthresponse_},
-            {"Botapichat.ConnectResponse", _onchatconnectresponse_},
+            //Step 2: Once auth accept response is received, attempt to connect to chat
+            Debug.WriteLine("Authenticated! Attempting to enter chat...");
 
-            {"Botapichat.ConnectEventRequest", _onchatconnect_},
-            {"Botapichat.DisconnectEventRequest", _onchatdisconnect_}
-        };
+            RequestResponseModel request = new RequestResponseModel()
+            {
+                Command = "Botapichat.ConnectRequest",
+                RequestId = requestID++
+            };
+            socket.Send(JsonConvert.SerializeObject(request));
+        }
 
-        private static void _onauthresponse_()
+        private void _onchatconnectresponse_(RequestResponseModel msg)
+        {
+            Debug.WriteLine("Server accepted enter chat request!");
+        }
+
+        private void _onchatconnect_(RequestResponseModel msg)
+        {
+            //Step 3: Recieving this response means login and connect is successful
+            ChannelJoinArgs c = new ChannelJoinArgs((string)msg.Payload["channel"]);
+            OnChannelJoin?.Invoke(this, c);
+            Debug.WriteLine("Entered chat!");
+        }
+
+        private void _onchatdisconnect_(RequestResponseModel msg)
         {
 
         }
 
-        private static void _onchatconnectresponse_()
+        private void _onchatsendmessageresponse_(RequestResponseModel msg)
         {
 
         }
 
-        private static void _onchatconnect_()
+        private void _onchatsendwhisperresponse_(RequestResponseModel msg)
         {
 
         }
 
-        private static void _onchatdisconnect_()
+        private void _onchatmessageevent_(RequestResponseModel msg)
+        {
+
+        }
+
+        private void _onuserupdateevent_(RequestResponseModel msg)
+        {
+
+        }
+
+        private void _onuserleaveevent_(RequestResponseModel msg)
         {
 
         }
@@ -61,29 +90,54 @@ namespace BNetClassicChat_API
             else
                 throw new ArgumentNullException();
 
+            //Initializing commands to function mappings
+            msgHandlers = new Dictionary<string, Action<RequestResponseModel>>()
+            {
+                {"Botapiauth.AuthenticateResponse", _onauthresponse_},
+                {"Botapichat.ConnectResponse", _onchatconnectresponse_},
+
+                {"Botapichat.ConnectEventRequest", _onchatconnect_},
+                {"Botapichat.DisconnectEventRequest", _onchatdisconnect_},
+
+                {"Botapichat.SendMessageResponse", _onchatsendmessageresponse_},
+                {"Botapichat.SendWhisperResponse", _onchatsendwhisperresponse_ },
+                {"Botapichat.MessageEventRequest", _onchatmessageevent_ },
+
+                {"Botapichat.UserUpdateEventRequest", _onuserupdateevent_ },
+                {"Botapichat.UserLeaveEventRequest", _onuserleaveevent_ }
+            };
+
             //Defining behaviour to comply with bnet protocol
             socket.OnOpen += (sender, args) =>
             {
                 //Step 1: Authenticate with server using API key
                 Debug.WriteLine("Connected! Attempting to authenticate...");
 
-                var auth = "{\n" +
-                    "command: Botapiauth.AuthenticateRequest,\n" +
-                    "request_id: " + requestID + ",\n" +
-                    "payload:\n" +
-                    " {api_key: " + apiKey + "\n}" +
-                    "\n}";
-                socket.Send(auth);
-
-                //Step 2: Once auth accept response is received, attempt to connect to chat
-                Debug.WriteLine("Authenticated! Attempting to enter chat...");
-
-                Debug.WriteLine("Entered chat!");
+                RequestResponseModel request = new RequestResponseModel()
+                {
+                    Command = "Botapiauth.AuthenticateRequest",
+                    RequestId = requestID++,
+                    Payload = new Dictionary<string, object>()
+                    {
+                        {"api_key", apiKey }
+                    }
+                };
+                socket.Send(JsonConvert.SerializeObject(request));
+                //Continued in _onauthresponse_
             };
 
             socket.OnMessage += (sender, args) =>
             {
                 Debug.WriteLine("Message recieved! " + args.Data);
+                RequestResponseModel msg = JsonConvert.DeserializeObject<RequestResponseModel>(args.Data);
+                try
+                {
+                    msgHandlers[msg.Command](msg);
+                }
+                catch (KeyNotFoundException e)
+                {
+                    Debug.WriteLine("Command " + msg.Command + " not recognized!");
+                }
             };
 
             socket.OnClose += (sender, args) =>

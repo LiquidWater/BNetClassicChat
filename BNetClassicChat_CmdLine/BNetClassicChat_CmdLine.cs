@@ -13,7 +13,11 @@ namespace BNetClassicChat_CmdLine
             BNetClassicChatClient client = new BNetClassicChatClient(apiKey);
 
             client.Connect();
-            client.Disconnect();
+            client.OnChannelJoin += (ob, e) => {
+                Console.WriteLine("Joined channel " + e.ChannelName);
+            };
+
+            //client.Disconnect();
 
             Console.WriteLine("Press any key to exit");
             Console.ReadLine();

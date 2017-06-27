@@ -12,7 +12,7 @@ namespace BNetClassicChat_API.Resources.Models
         public int RequestId { get; set; }
 
         [JsonProperty("payload")]
-        public Dictionary<string, string> Payload { get; set; }
+        public Dictionary<string, object> Payload { get; set; }
 
         [JsonProperty("status")]
         public StatusModel Status { get; set; }
