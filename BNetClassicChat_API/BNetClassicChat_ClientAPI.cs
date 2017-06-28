@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Collections.Generic;
-using BNetClassicChat_API.Resources;
-using BNetClassicChat_API.Resources.EArgs;
-using BNetClassicChat_API.Resources.Models;
+using BNetClassicChat_ClientAPI.Resources;
+using BNetClassicChat_ClientAPI.Resources.EArgs;
+using BNetClassicChat_ClientAPI.Resources.Models;
 using Newtonsoft.Json;
 using WebSocketSharp;
 
-namespace BNetClassicChat_API
+namespace BNetClassicChat_ClientAPI
 {
     //TODO: Make this class thread safe?
-    public class BNetClassicChat_ClientAPI
+    public class BNetClassicChat_Client
     {
         #region PrivateFields
         private bool isConnected, isReady = false;
@@ -129,7 +129,7 @@ namespace BNetClassicChat_API
         public event EventHandler<UserJoinArgs> OnUserJoin;
         public event EventHandler<UserLeaveArgs> OnUserLeave;
 
-        public BNetClassicChat_ClientAPI(string apikey)
+        public BNetClassicChat_Client(string apikey)
         {
             //Basic input sanitation
             if (apikey != null)

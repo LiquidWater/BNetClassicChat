@@ -1,4 +1,4 @@
-﻿namespace BNetClassicChat_API.Resources
+﻿namespace BNetClassicChat_ClientAPI.Resources
 {
     internal static class Constants
     {

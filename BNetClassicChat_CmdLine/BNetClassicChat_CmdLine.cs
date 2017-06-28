@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-using BNetClassicChat_API;
+using BNetClassicChat_ClientAPI;
 using System.Threading;
 
 namespace BNetClassicChat_CmdLine
@@ -15,7 +15,7 @@ namespace BNetClassicChat_CmdLine
             string apiKey = File.ReadAllLines("Config/APIKey.txt")[0];
 
             //Instantiate a new instance of the chat client
-            BNetClassicChat_ClientAPI client = new BNetClassicChat_ClientAPI(apiKey);
+            BNetClassicChat_Client client = new BNetClassicChat_Client(apiKey);
             
             //Calling connect will connect the client to battlenet
             client.Connect();

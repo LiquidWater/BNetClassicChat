@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
-using static BNetClassicChat_API.Resources.Constants;
+using static BNetClassicChat_ClientAPI.Resources.Constants;
 
-namespace BNetClassicChat_API.Resources.Models
+namespace BNetClassicChat_ClientAPI.Resources.Models
 {
     internal class StatusModel
     {

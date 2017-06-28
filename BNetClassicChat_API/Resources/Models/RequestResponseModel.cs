@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace BNetClassicChat_API.Resources.Models
+namespace BNetClassicChat_ClientAPI.Resources.Models
 {
     internal class RequestResponseModel
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BNetClassicChat_API.Resources.EArgs
+namespace BNetClassicChat_ClientAPI.Resources.EArgs
 {
     public class ChannelJoinArgs : EventArgs
     {
