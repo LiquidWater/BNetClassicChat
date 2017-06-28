@@ -10,7 +10,7 @@ using WebSocketSharp;
 namespace BNetClassicChat_API
 {
     //TODO: Make this class thread safe?
-    public class BNetClassicChatClient
+    public class BNetClassicChat_ClientAPI
     {
         #region PrivateFields
         private bool isConnected, isReady = false;
@@ -129,7 +129,7 @@ namespace BNetClassicChat_API
         public event EventHandler<UserJoinArgs> OnUserJoin;
         public event EventHandler<UserLeaveArgs> OnUserLeave;
 
-        public BNetClassicChatClient(string apikey)
+        public BNetClassicChat_ClientAPI(string apikey)
         {
             //Basic input sanitation
             if (apikey != null)

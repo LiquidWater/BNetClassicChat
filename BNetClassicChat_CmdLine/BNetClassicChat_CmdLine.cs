@@ -15,7 +15,7 @@ namespace BNetClassicChat_CmdLine
             string apiKey = File.ReadAllLines("Config/APIKey.txt")[0];
 
             //Instantiate a new instance of the chat client
-            BNetClassicChatClient client = new BNetClassicChatClient(apiKey);
+            BNetClassicChat_ClientAPI client = new BNetClassicChat_ClientAPI(apiKey);
             
             //Calling connect will connect the client to battlenet
             client.Connect();

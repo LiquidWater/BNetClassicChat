@@ -47,7 +47,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BNetClassicChatClient.cs" />
+    <Compile Include="BNetClassicChat_ClientAPI.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Constants.cs" />
     <Compile Include="Resources\EArgs\ChannelJoinArgs.cs" />

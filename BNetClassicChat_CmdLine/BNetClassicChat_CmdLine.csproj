@@ -84,9 +84,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BNetClassicChat_API\BNetClassicChat_API.csproj">
+    <ProjectReference Include="..\BNetClassicChat_API\BNetClassicChat_ClientAPI.csproj">
       <Project>{3eda798a-076a-42af-85c0-0c9698269086}</Project>
-      <Name>BNetClassicChat_API</Name>
+      <Name>BNetClassicChat_ClientAPI</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
