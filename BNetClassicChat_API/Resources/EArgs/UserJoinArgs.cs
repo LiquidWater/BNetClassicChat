@@ -6,7 +6,7 @@ namespace BNetClassicChat_API.Resources.EArgs
     {
         public enum FlagCode
         {
-            FLAG_NOTIMPLEMENTED = 0,
+            FLAG_UNKNOWN = 0,
             FLAG_ADMIN = 1,
             FLAG_MODERATOR = 2,
             FLAG_SPEAKER = 3,
@@ -47,7 +47,7 @@ namespace BNetClassicChat_API.Resources.EArgs
                 case "mutewhisper":
                     return FlagCode.FLAG_MUTEWHISPER;
                 default:
-                    return FlagCode.FLAG_NOTIMPLEMENTED;
+                    return FlagCode.FLAG_UNKNOWN;
             }
         }
 

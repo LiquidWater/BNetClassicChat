@@ -3,16 +3,17 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using BNetClassicChat_API.Resources;
 using BNetClassicChat_API.Resources.EArgs;
+using BNetClassicChat_API.Resources.Models;
 using Newtonsoft.Json;
 using WebSocketSharp;
-using BNetClassicChat_API.Resources.Models;
 
 namespace BNetClassicChat_API
 {
+    //TODO: Make this class thread safe?
     public class BNetClassicChatClient
     {
         #region PrivateFields
-        private bool isConnected = false;
+        private bool isConnected, isReady = false;
         //TODO: Make this variable threadsafe just in case
         private int requestID = 0;
         private string apiKey;
@@ -43,6 +44,7 @@ namespace BNetClassicChat_API
         private void _onchatconnect_(RequestResponseModel msg)
         {
             //Step 3: Recieving this response means login and connect is successful
+            isReady = true;
             string channelname = (string)msg.Payload["channel"];
             ChannelJoinArgs c = new ChannelJoinArgs(channelname);
             OnChannelJoin?.Invoke(this, c);
@@ -94,6 +96,7 @@ namespace BNetClassicChat_API
 
         private void _onuserupdateevent_(RequestResponseModel msg)
         {
+            //API responses here are inconsistent with spec document
             ulong user = Convert.ToUInt64(msg.Payload["user_id"]);
             string toonname = (string)msg.Payload["toon_name"];
             //TODO: finish flags and attributes
@@ -121,7 +124,7 @@ namespace BNetClassicChat_API
 
         #region PublicMethodsAndVariables
         //Subscribers must handle events in order to recieve messages
-        public event EventHandler<ChannelJoinArgs> OnChannelJoin;
+        public event EventHandler<ChannelJoinArgs> OnChannelJoin; //Connected when this event fires
         public event EventHandler<ChatMessageArgs> OnChatMessage;
         public event EventHandler<UserJoinArgs> OnUserJoin;
         public event EventHandler<UserLeaveArgs> OnUserLeave;
@@ -214,7 +217,6 @@ namespace BNetClassicChat_API
             }
             else
                 throw new InvalidOperationException("Already connected");
-            return;
         }
 
         public void Disconnect()
@@ -222,12 +224,12 @@ namespace BNetClassicChat_API
             //TODO: Use the API disconnect call instead of simply closing the socket
             if (isConnected)
             {
-                socket.Close(CloseStatusCode.Normal);
                 isConnected = false;
+                isReady = false;
+                socket.Close(CloseStatusCode.Normal);
             }
             else
                 throw new InvalidOperationException("Not connected");
-            return;
         }
 
         public void SendMessage(string msg)
@@ -321,8 +323,8 @@ namespace BNetClassicChat_API
         #region PrivateHelpers
         private void ActiveConnectionCheck()
         {
-            if (!isConnected)
-                throw new InvalidOperationException("Websocket not connected");
+            if (!isConnected || !isReady)
+                throw new InvalidOperationException("Websocket not connected or ready");
         }
         #endregion
     }

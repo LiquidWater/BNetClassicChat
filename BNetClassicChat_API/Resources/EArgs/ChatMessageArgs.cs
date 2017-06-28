@@ -6,7 +6,7 @@ namespace BNetClassicChat_API.Resources.EArgs
     {
         public enum MessageSource
         {
-            MSG_NOTIMPLEMENTED = 0,
+            MSG_UNKNOWN = 0,
             MSG_WHISPER = 1,
             MSG_CHANNEL = 2,
             MSG_SERVERINFO = 3,
@@ -15,13 +15,14 @@ namespace BNetClassicChat_API.Resources.EArgs
         };
 
         private ulong userid;
-        private string message;
+        private string message, strmsgtype;
         private MessageSource msgtype;
 
         internal ChatMessageArgs(ulong uid, string msg, string type)
         {
             userid = uid;
             message = msg;
+            strmsgtype = type;
             msgtype = _stringtomessagesource_(type);
         }
 
@@ -40,7 +41,7 @@ namespace BNetClassicChat_API.Resources.EArgs
                 case "emote":
                     return MessageSource.MSG_EMOTE;
                 default:
-                    return MessageSource.MSG_NOTIMPLEMENTED;
+                    return MessageSource.MSG_UNKNOWN;
             }
         }
 
@@ -52,6 +53,11 @@ namespace BNetClassicChat_API.Resources.EArgs
         public string Message
         {
             get { return message; }
+        }
+
+        public string MessageTypeAsString
+        {
+            get { return strmsgtype; }
         }
 
         public MessageSource MessageType
