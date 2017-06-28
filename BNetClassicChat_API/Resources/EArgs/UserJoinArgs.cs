@@ -14,11 +14,11 @@ namespace BNetClassicChat_API.Resources.EArgs
             FLAG_MUTEWHISPER = 5
         };
 
-        private UInt64 userid;
+        private ulong userid;
         private string toonname, programid, rate, rank, wins;
         private FlagCode flag1, flag2;
 
-        internal UserJoinArgs (UInt64 uid, string tn, string f1, string f2, string pid,
+        internal UserJoinArgs (ulong uid, string tn, string f1, string f2, string pid,
             string r1, string r2, string w)
         {
             userid = uid;
@@ -51,7 +51,7 @@ namespace BNetClassicChat_API.Resources.EArgs
             }
         }
 
-        public UInt64 UserId
+        public ulong UserId
         {
             get{ return userid; }
         }

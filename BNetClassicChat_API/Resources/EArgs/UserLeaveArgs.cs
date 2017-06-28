@@ -4,14 +4,14 @@ namespace BNetClassicChat_API.Resources.EArgs
 {
     public class UserLeaveArgs : EventArgs
     {
-        private UInt64 userid;
+        private ulong userid;
 
-        internal UserLeaveArgs(UInt64 u)
+        internal UserLeaveArgs(ulong u)
         {
             userid = u;
         }
 
-        public UInt64 UserId
+        public ulong UserId
         {
             get{ return userid; }
         }
