@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BNetClassicChat_ClientAPI", "BNetClassicChat_API\BNetClassicChat_ClientAPI.csproj", "{3EDA798A-076A-42AF-85C0-0C9698269086}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BNetClassicChat_ClientAPI", "BNetClassicChat_ClientAPI\BNetClassicChat_ClientAPI.csproj", "{3EDA798A-076A-42AF-85C0-0C9698269086}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BNetClassicChat_CmdLine", "BNetClassicChat_CmdLine\BNetClassicChat_CmdLine.csproj", "{C185A25E-8F5B-4DDA-8DE2-9CC9B724C718}"
 	ProjectSection(ProjectDependencies) = postProject
