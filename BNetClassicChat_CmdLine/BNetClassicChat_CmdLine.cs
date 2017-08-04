@@ -6,6 +6,8 @@ using System.Threading;
 
 namespace BNetClassicChat_CmdLine
 {
+
+    //Demo program showcasing how to use the API wrapper.
     class BNetClassicChat_CmdLine
     {
         static void Main(string[] args)
@@ -27,9 +29,9 @@ namespace BNetClassicChat_CmdLine
 
                 //Sending messages to the server
                 client.SendMessage("test message");
-                Thread.Sleep(500);
+                //Slowing down with sleep to avoid triggering blizzard's anti spam protection
+                Thread.Sleep(1000);
                 client.SendWhisper("test whisper", 1);
-                Thread.Sleep(500);
             };
 
             client.OnChatMessage += (ob, e) =>

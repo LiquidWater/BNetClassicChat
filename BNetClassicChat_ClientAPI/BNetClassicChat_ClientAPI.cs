@@ -13,7 +13,7 @@ namespace BNetClassicChat_ClientAPI
     public class BNetClassicChat_Client
     {
         #region PrivateFields
-        private bool isConnected, isReady = false;
+        private bool isConnected = false, isReady = false;
         //TODO: Make this variable threadsafe just in case
         private int requestID = 0;
         private string apiKey;
@@ -47,7 +47,7 @@ namespace BNetClassicChat_ClientAPI
             isReady = true;
             string channelname = (string)msg.Payload["channel"];
             ChannelJoinArgs c = new ChannelJoinArgs(channelname);
-            OnChannelJoin?.Invoke(this, c);
+            OnChannelJoin?.BeginInvoke(this, c, null, null);
 
             Debug.WriteLine("[EVENT]Entered channel: " + channelname);
         }
@@ -89,7 +89,7 @@ namespace BNetClassicChat_ClientAPI
             string message = (string)msg.Payload["message"];
             string type = (string)msg.Payload["type"];
             ChatMessageArgs args = new ChatMessageArgs(user, message, type);
-            OnChatMessage?.Invoke(this, args);
+            OnChatMessage?.BeginInvoke(this, args, null, null);
 
             Debug.WriteLine("[EVENT]Chat message [" + type + "] UID " + user + ": " + message);
         }
@@ -106,8 +106,8 @@ namespace BNetClassicChat_ClientAPI
 
             */
 
-            UserJoinArgs args = new UserJoinArgs(user, toonname, "f1", "f2", "pid", "r1", "r2", "w");
-            OnUserJoin?.Invoke(this, args);
+            UserJoinArgs args = new UserJoinArgs(user, toonname, "temp", "temp", "temp", "temp", "temp", "temp");
+            OnUserJoin?.BeginInvoke(this, args, null, null);
 
             Debug.WriteLine("[EVENT]User joined: " + user + ": " + toonname);
         }
@@ -116,7 +116,7 @@ namespace BNetClassicChat_ClientAPI
         {
             ulong user = Convert.ToUInt64(msg.Payload["user_id"]);
             UserLeaveArgs args = new UserLeaveArgs(user);
-            OnUserLeave?.Invoke(this, args);
+            OnUserLeave?.BeginInvoke(this, args, null, null);
 
             Debug.WriteLine("[EVENT]User left: " + user);
         }
@@ -186,7 +186,7 @@ namespace BNetClassicChat_ClientAPI
                 RequestResponseModel msg = JsonConvert.DeserializeObject<RequestResponseModel>(args.Data);
                 try
                 {
-                    msgHandlers[msg.Command](msg);
+                   msgHandlers[msg.Command].BeginInvoke(msg, null, null);
                 }
                 catch (KeyNotFoundException)
                 {
@@ -232,6 +232,7 @@ namespace BNetClassicChat_ClientAPI
                 throw new InvalidOperationException("Not connected");
         }
 
+        //TODO: Make these functions async
         public void SendMessage(string msg)
         {
             ActiveConnectionCheck();
@@ -284,7 +285,6 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine("[REQUEST]Ban user: " + userid);
         }
 
-        //Inconsistency on their end. Not my fault.
         public void UnbanUser(string toonname)
         {
             ActiveConnectionCheck();
@@ -294,6 +294,7 @@ namespace BNetClassicChat_ClientAPI
                 RequestId = requestID++,
                 Payload = new Dictionary<string, object>()
                 {
+                    //For some reason the api spec takes toonname instead of userid here??
                     {"toon_name", toonname}
                 }
             };
