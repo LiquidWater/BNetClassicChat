@@ -12,7 +12,9 @@ namespace BNetClassicChat_CmdLine
     {
         static void Main(string[] args)
         {
+            //Subscriber keeps track of userid to username and other info mapping
             Dictionary<ulong, string> idtoname = new Dictionary<ulong, string>();
+            
             //Blizz API key required to connect
             string apiKey = File.ReadAllLines("Config/APIKey.txt")[0];
 
@@ -46,7 +48,6 @@ namespace BNetClassicChat_CmdLine
                 }
             };
 
-            //Current version of API is inconsistent with use of userids and toonnames, so we have to keep track ourselves
             client.OnUserJoin += (ob, e) =>
             {
                 try
