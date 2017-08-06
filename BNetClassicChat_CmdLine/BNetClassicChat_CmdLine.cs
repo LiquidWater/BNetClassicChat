@@ -6,11 +6,15 @@ using System.Threading;
 
 namespace BNetClassicChat_CmdLine
 {
+
+    //Demo program showcasing how to use the API wrapper.
     class BNetClassicChat_CmdLine
     {
         static void Main(string[] args)
         {
+            //Subscriber keeps track of userid to username and other info mapping
             Dictionary<ulong, string> idtoname = new Dictionary<ulong, string>();
+            
             //Blizz API key required to connect
             string apiKey = File.ReadAllLines("Config/APIKey.txt")[0];
 
@@ -27,9 +31,9 @@ namespace BNetClassicChat_CmdLine
 
                 //Sending messages to the server
                 client.SendMessage("test message");
-                Thread.Sleep(500);
+                //Slowing down with sleep to avoid triggering blizzard's anti spam protection
+                Thread.Sleep(1000);
                 client.SendWhisper("test whisper", 1);
-                Thread.Sleep(500);
             };
 
             client.OnChatMessage += (ob, e) =>
@@ -44,7 +48,6 @@ namespace BNetClassicChat_CmdLine
                 }
             };
 
-            //Current version of API is inconsistent with use of userids and toonnames, so we have to keep track ourselves
             client.OnUserJoin += (ob, e) =>
             {
                 try

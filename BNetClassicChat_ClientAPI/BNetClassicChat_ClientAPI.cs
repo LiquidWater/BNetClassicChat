@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Threading;
 using BNetClassicChat_ClientAPI.Resources;
 using BNetClassicChat_ClientAPI.Resources.EArgs;
 using BNetClassicChat_ClientAPI.Resources.Models;
@@ -9,12 +10,11 @@ using WebSocketSharp;
 
 namespace BNetClassicChat_ClientAPI
 {
-    //TODO: Make this class thread safe?
     public class BNetClassicChat_Client
     {
         #region PrivateFields
-        private bool isConnected, isReady = false;
-        //TODO: Make this variable threadsafe just in case
+        private Object mutex = new Object();
+        private bool isConnected = false, isReady = false;
         private int requestID = 0;
         private string apiKey;
         private WebSocket socket = new WebSocket(Constants.TargetURL, "json");
@@ -23,6 +23,7 @@ namespace BNetClassicChat_ClientAPI
         #endregion
 
         #region InternalMessageHandlers
+        #region ConnectionHandshakeHandlers
         private void _onauthresponse_(RequestResponseModel msg)
         {
             //Step 2: Once auth accept response is received, attempt to connect to chat
@@ -31,28 +32,32 @@ namespace BNetClassicChat_ClientAPI
             RequestResponseModel request = new RequestResponseModel()
             {
                 Command = "Botapichat.ConnectRequest",
-                RequestId = requestID++
+                RequestId = Interlocked.Exchange(ref requestID, requestID++)
             };
-            socket.Send(JsonConvert.SerializeObject(request));
-        }
-
-        private void _onchatconnectresponse_(RequestResponseModel msg)
-        {
-            Debug.WriteLine("[RESPONSE]Chat Connect");
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
         }
 
         private void _onchatconnect_(RequestResponseModel msg)
         {
             //Step 3: Recieving this response means login and connect is successful
-            isReady = true;
+            lock (mutex)
+            {
+                isReady = true;
+            }
             string channelname = (string)msg.Payload["channel"];
             ChannelJoinArgs c = new ChannelJoinArgs(channelname);
-            OnChannelJoin?.Invoke(this, c);
+            OnChannelJoin?.BeginInvoke(this, c, null, null);
 
             Debug.WriteLine("[EVENT]Entered channel: " + channelname);
         }
-
+        #endregion
+        #region RequestResponses
         //TODO: Handle potential errors for these responses
+        private void _onchatconnectresponse_(RequestResponseModel msg)
+        {
+            Debug.WriteLine("[RESPONSE]Chat Connect");
+        }
+
         private void _onchatdisconnect_(RequestResponseModel msg)
         {
             Debug.WriteLine("[RESPONSE]Disconnect");
@@ -82,14 +87,15 @@ namespace BNetClassicChat_ClientAPI
         {
             Debug.WriteLine("[RESPONSE]Kick user");
         }
-
+        #endregion
+        #region ImportantAsyncEvents
         private void _onchatmessageevent_(RequestResponseModel msg)
         {
             ulong user = Convert.ToUInt64(msg.Payload["user_id"]);
             string message = (string)msg.Payload["message"];
             string type = (string)msg.Payload["type"];
             ChatMessageArgs args = new ChatMessageArgs(user, message, type);
-            OnChatMessage?.Invoke(this, args);
+            OnChatMessage?.BeginInvoke(this, args, null, null);
 
             Debug.WriteLine("[EVENT]Chat message [" + type + "] UID " + user + ": " + message);
         }
@@ -106,8 +112,8 @@ namespace BNetClassicChat_ClientAPI
 
             */
 
-            UserJoinArgs args = new UserJoinArgs(user, toonname, "f1", "f2", "pid", "r1", "r2", "w");
-            OnUserJoin?.Invoke(this, args);
+            UserJoinArgs args = new UserJoinArgs(user, toonname, "temp", "temp", "temp", "temp", "temp", "temp");
+            OnUserJoin?.BeginInvoke(this, args, null, null);
 
             Debug.WriteLine("[EVENT]User joined: " + user + ": " + toonname);
         }
@@ -116,10 +122,11 @@ namespace BNetClassicChat_ClientAPI
         {
             ulong user = Convert.ToUInt64(msg.Payload["user_id"]);
             UserLeaveArgs args = new UserLeaveArgs(user);
-            OnUserLeave?.Invoke(this, args);
+            OnUserLeave?.BeginInvoke(this, args, null, null);
 
             Debug.WriteLine("[EVENT]User left: " + user);
         }
+        #endregion
         #endregion
 
         #region PublicMethodsAndVariables
@@ -128,6 +135,8 @@ namespace BNetClassicChat_ClientAPI
         public event EventHandler<ChatMessageArgs> OnChatMessage;
         public event EventHandler<UserJoinArgs> OnUserJoin;
         public event EventHandler<UserLeaveArgs> OnUserLeave;
+
+        //TODO: Notify subscribers when ready, and notify when disconnected
 
         public BNetClassicChat_Client(string apikey)
         {
@@ -171,13 +180,13 @@ namespace BNetClassicChat_ClientAPI
                 RequestResponseModel request = new RequestResponseModel()
                 {
                     Command = "Botapiauth.AuthenticateRequest",
-                    RequestId = requestID++,
+                    RequestId = Interlocked.Exchange(ref requestID, requestID++),
                     Payload = new Dictionary<string, object>()
                     {
                         {"api_key", apiKey }
                     }
                 };
-                socket.Send(JsonConvert.SerializeObject(request));
+                socket.SendAsync(JsonConvert.SerializeObject(request), null);
                 //Continued in _onauthresponse_()
             };
 
@@ -186,7 +195,7 @@ namespace BNetClassicChat_ClientAPI
                 RequestResponseModel msg = JsonConvert.DeserializeObject<RequestResponseModel>(args.Data);
                 try
                 {
-                    msgHandlers[msg.Command](msg);
+                   msgHandlers[msg.Command].BeginInvoke(msg, null, null);
                 }
                 catch (KeyNotFoundException)
                 {
@@ -197,7 +206,12 @@ namespace BNetClassicChat_ClientAPI
 
             socket.OnClose += (sender, args) =>
             {
-                Debug.WriteLine("[SOCKET]Disconnected with code " + args.Code + ". Reason: " + args.Reason);
+                lock (mutex)
+                {
+                    isConnected = false;
+                    isReady = false;
+                    Debug.WriteLine("[SOCKET]Disconnected with code " + args.Code + ". Reason: " + args.Reason);
+                }
             };
 
             socket.OnError += (sender, args) =>
@@ -210,26 +224,44 @@ namespace BNetClassicChat_ClientAPI
         //Functions for sending data to BNet
         public void Connect()
         {
-            if (!isConnected)
+            lock (mutex)
             {
-                socket.Connect();
-                isConnected = true;
+                if (!isConnected)
+                {
+                    socket.ConnectAsync();
+                    isConnected = true;
+                }
+                else
+                    throw new InvalidOperationException("Already connected");
             }
-            else
-                throw new InvalidOperationException("Already connected");
+        }
+
+        public void ConnectAsync()
+        {
+            Action dummyaction = Connect;
+            dummyaction.BeginInvoke(null, null);
         }
 
         public void Disconnect()
         {
             //TODO: Use the API disconnect call instead of simply closing the socket
-            if (isConnected)
+            lock (mutex)
             {
-                isConnected = false;
-                isReady = false;
-                socket.Close(CloseStatusCode.Normal);
+                if (isConnected)
+                {
+                    isConnected = false;
+                    isReady = false;
+                    socket.CloseAsync(CloseStatusCode.Normal);
+                }
+                else
+                    throw new InvalidOperationException("Not connected");
             }
-            else
-                throw new InvalidOperationException("Not connected");
+        }
+
+        public void DisconnectAsync()
+        {
+            Action dummyaction = Disconnect;
+            dummyaction.BeginInvoke(null, null);
         }
 
         public void SendMessage(string msg)
@@ -238,7 +270,7 @@ namespace BNetClassicChat_ClientAPI
             RequestResponseModel request = new RequestResponseModel()
             {
                 Command = "Botapichat.SendMessageRequest",
-                RequestId = requestID++,
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
                 Payload = new Dictionary<string, object>()
                 {
                     {"message", msg }
@@ -249,13 +281,19 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine("[REQUEST]Send Message: " + msg);
         }
 
+        public void SendMessageAsync(string msg)
+        {
+            Action<string> dummyaction = SendMessage;
+            dummyaction.BeginInvoke(msg, null, null);
+        }
+
         public void SendWhisper(string msg, ulong userid)
         {
             ActiveConnectionCheck();
             RequestResponseModel request = new RequestResponseModel()
             {
                 Command = "Botapichat.SendWhisperRequest",
-                RequestId = requestID++,
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
                 Payload = new Dictionary<string, object>()
                 {
                     {"message", msg },
@@ -267,13 +305,19 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine("[REQUEST]Send Whisper: " + userid + ": " + msg);
         }
 
+        public void SendWhisperAsync(string msg, ulong userid)
+        {
+            Action<string, ulong> dummyaction = SendWhisper;
+            dummyaction.BeginInvoke(msg, userid, null, null);
+        }
+
         public void BanUser(ulong userid)
         {
             ActiveConnectionCheck();
             RequestResponseModel request = new RequestResponseModel()
             {
                 Command = "Botapichat.BanUserRequest",
-                RequestId = requestID++,
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
                 Payload = new Dictionary<string, object>()
                 {
                     {"user_id", userid}
@@ -284,16 +328,22 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine("[REQUEST]Ban user: " + userid);
         }
 
-        //Inconsistency on their end. Not my fault.
+        public void BanUserAsync(ulong userid)
+        {
+            Action<ulong> dummyaction = BanUser;
+            dummyaction.BeginInvoke(userid, null, null);
+        }
+
         public void UnbanUser(string toonname)
         {
             ActiveConnectionCheck();
             RequestResponseModel request = new RequestResponseModel()
             {
                 Command = "Botapichat.UnbanUserRequest",
-                RequestId = requestID++,
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
                 Payload = new Dictionary<string, object>()
                 {
+                    //For some reason the api spec takes toonname instead of userid here??
                     {"toon_name", toonname}
                 }
             };
@@ -302,13 +352,19 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine("[REQUEST]Unban user: " + toonname);
         }
 
+        public void UnbanUserAsync(string toonname)
+        {
+            Action<string> dummyaction = UnbanUser;
+            dummyaction.BeginInvoke(toonname, null, null);
+        }
+
         public void KickUser(ulong userid)
         {
             ActiveConnectionCheck();
             RequestResponseModel request = new RequestResponseModel()
             {
                 Command = "Botapichat.KickUserRequest",
-                RequestId = requestID++,
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
                 Payload = new Dictionary<string, object>()
                 {
                     {"user_id", userid}
@@ -318,13 +374,22 @@ namespace BNetClassicChat_ClientAPI
 
             Debug.WriteLine("[REQUEST]Kick user: " + userid);
         }
+
+        public void KickUserAsync(ulong userid)
+        {
+            Action<ulong> dummyaction = KickUser;
+            dummyaction.BeginInvoke(userid, null, null);
+        }
         #endregion
 
         #region PrivateHelpers
         private void ActiveConnectionCheck()
         {
-            if (!isConnected || !isReady)
-                throw new InvalidOperationException("Websocket not connected or ready");
+            lock (mutex)
+            {
+                if (!isConnected || !isReady)
+                    throw new InvalidOperationException("Websocket not connected or ready");
+            }
         }
         #endregion
     }
