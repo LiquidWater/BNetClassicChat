@@ -13,7 +13,7 @@ namespace BNetClassicChat_ClientAPI
     public class BNetClassicChat_Client
     {
         #region PrivateFields
-        //TODO: Make these variables threadsafe
+        private Object mutex = new Object();
         private bool isConnected = false, isReady = false;
         private int requestID = 0;
         private string apiKey;
@@ -23,6 +23,7 @@ namespace BNetClassicChat_ClientAPI
         #endregion
 
         #region InternalMessageHandlers
+        #region ConnectionHandshakeHandlers
         private void _onauthresponse_(RequestResponseModel msg)
         {
             //Step 2: Once auth accept response is received, attempt to connect to chat
@@ -36,23 +37,27 @@ namespace BNetClassicChat_ClientAPI
             socket.SendAsync(JsonConvert.SerializeObject(request), null);
         }
 
-        private void _onchatconnectresponse_(RequestResponseModel msg)
-        {
-            Debug.WriteLine("[RESPONSE]Chat Connect");
-        }
-
         private void _onchatconnect_(RequestResponseModel msg)
         {
             //Step 3: Recieving this response means login and connect is successful
-            isReady = true;
+            lock (mutex)
+            {
+                isReady = true;
+            }
             string channelname = (string)msg.Payload["channel"];
             ChannelJoinArgs c = new ChannelJoinArgs(channelname);
             OnChannelJoin?.BeginInvoke(this, c, null, null);
 
             Debug.WriteLine("[EVENT]Entered channel: " + channelname);
         }
-
+        #endregion
+        #region RequestResponses
         //TODO: Handle potential errors for these responses
+        private void _onchatconnectresponse_(RequestResponseModel msg)
+        {
+            Debug.WriteLine("[RESPONSE]Chat Connect");
+        }
+
         private void _onchatdisconnect_(RequestResponseModel msg)
         {
             Debug.WriteLine("[RESPONSE]Disconnect");
@@ -82,7 +87,8 @@ namespace BNetClassicChat_ClientAPI
         {
             Debug.WriteLine("[RESPONSE]Kick user");
         }
-
+        #endregion
+        #region ImportantAsyncEvents
         private void _onchatmessageevent_(RequestResponseModel msg)
         {
             ulong user = Convert.ToUInt64(msg.Payload["user_id"]);
@@ -120,6 +126,7 @@ namespace BNetClassicChat_ClientAPI
 
             Debug.WriteLine("[EVENT]User left: " + user);
         }
+        #endregion
         #endregion
 
         #region PublicMethodsAndVariables
@@ -199,9 +206,12 @@ namespace BNetClassicChat_ClientAPI
 
             socket.OnClose += (sender, args) =>
             {
-                isConnected = false;
-                isReady = false;
-                Debug.WriteLine("[SOCKET]Disconnected with code " + args.Code + ". Reason: " + args.Reason);
+                lock (mutex)
+                {
+                    isConnected = false;
+                    isReady = false;
+                    Debug.WriteLine("[SOCKET]Disconnected with code " + args.Code + ". Reason: " + args.Reason);
+                }
             };
 
             socket.OnError += (sender, args) =>
@@ -214,13 +224,16 @@ namespace BNetClassicChat_ClientAPI
         //Functions for sending data to BNet
         public void Connect()
         {
-            if (!isConnected)
+            lock (mutex)
             {
-                socket.ConnectAsync();
-                isConnected = true;
+                if (!isConnected)
+                {
+                    socket.ConnectAsync();
+                    isConnected = true;
+                }
+                else
+                    throw new InvalidOperationException("Already connected");
             }
-            else
-                throw new InvalidOperationException("Already connected");
         }
 
         public void ConnectAsync()
@@ -232,14 +245,17 @@ namespace BNetClassicChat_ClientAPI
         public void Disconnect()
         {
             //TODO: Use the API disconnect call instead of simply closing the socket
-            if (isConnected)
+            lock (mutex)
             {
-                isConnected = false;
-                isReady = false;
-                socket.CloseAsync(CloseStatusCode.Normal);
+                if (isConnected)
+                {
+                    isConnected = false;
+                    isReady = false;
+                    socket.CloseAsync(CloseStatusCode.Normal);
+                }
+                else
+                    throw new InvalidOperationException("Not connected");
             }
-            else
-                throw new InvalidOperationException("Not connected");
         }
 
         public void DisconnectAsync()
@@ -369,8 +385,11 @@ namespace BNetClassicChat_ClientAPI
         #region PrivateHelpers
         private void ActiveConnectionCheck()
         {
-            if (!isConnected || !isReady)
-                throw new InvalidOperationException("Websocket not connected or ready");
+            lock (mutex)
+            {
+                if (!isConnected || !isReady)
+                    throw new InvalidOperationException("Websocket not connected or ready");
+            }
         }
         #endregion
     }
