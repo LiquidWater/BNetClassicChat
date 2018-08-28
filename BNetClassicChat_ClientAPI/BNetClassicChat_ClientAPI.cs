@@ -83,9 +83,19 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine("[RESPONSE]Unban user");
         }
 
+        private void _onsendemoteresponse_(RequestResponseModel msg)
+        {
+            Debug.WriteLine("[RESPONSE]Send Emote");
+        }
+
         private void _onkickuserresponse_(RequestResponseModel msg)
         {
             Debug.WriteLine("[RESPONSE]Kick user");
+        }
+
+        private void _onsetmoderatorresponse_(RequestResponseModel msg)
+        {
+            Debug.WriteLine("[RESPONSE]Send Set Moderator");
         }
         #endregion
         #region ImportantAsyncEvents
@@ -163,7 +173,9 @@ namespace BNetClassicChat_ClientAPI
                 {"Botapichat.SendWhisperResponse", _onchatsendwhisperresponse_},
                 {"Botapichat.BanUserResponse", _onbanuserresponse_},
                 {"Botapichat.UnbanUserResponse", _onunbanuserresponse_},
+                {"Botapichat.SendEmoteResponse", _onsendemoteresponse_},
                 {"Botapichat.KickUserResponse", _onkickuserresponse_},
+                {"Botapichat.SendSetModeratorResponse", _onsetmoderatorresponse_},
 
                 //Server events that require client action
                 {"Botapichat.MessageEventRequest", _onchatmessageevent_},
@@ -358,6 +370,29 @@ namespace BNetClassicChat_ClientAPI
             dummyaction.BeginInvoke(toonname, null, null);
         }
 
+        public void SendEmote(string emotemsg)
+        {
+            ActiveConnectionCheck();
+            RequestResponseModel request = new RequestResponseModel()
+            {
+                Command = "Botapichat.SendEmoteRequest",
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
+                Payload = new Dictionary<string, object>()
+                {
+                    {"message", emotemsg }
+                }
+            };
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+
+            Debug.WriteLine("[REQUEST]Send emote: " + emotemsg);
+        }
+
+        public void SendEmoteAsync(string emotemsg)
+        {
+            Action<string> dummyaction = SendEmote;
+            dummyaction.BeginInvoke(emotemsg, null, null);
+        }
+
         public void KickUser(ulong userid)
         {
             ActiveConnectionCheck();
@@ -378,6 +413,29 @@ namespace BNetClassicChat_ClientAPI
         public void KickUserAsync(ulong userid)
         {
             Action<ulong> dummyaction = KickUser;
+            dummyaction.BeginInvoke(userid, null, null);
+        }
+
+        public void SetModerator(ulong userid)
+        {
+            ActiveConnectionCheck();
+            RequestResponseModel request = new RequestResponseModel()
+            {
+                Command = "Botapichat.SendSetModeratorRequest",
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
+                Payload = new Dictionary<string, object>()
+                {
+                    {"user_id", userid}
+                }
+            };
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+
+            Debug.WriteLine("[REQUEST]Set moderator: " + userid);
+        }
+
+        public void SetModeratorAsync(ulong userid)
+        {
+            Action<ulong> dummyaction = SetModerator;
             dummyaction.BeginInvoke(userid, null, null);
         }
         #endregion
