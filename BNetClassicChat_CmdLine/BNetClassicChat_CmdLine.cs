@@ -33,6 +33,8 @@ namespace BNetClassicChat_CmdLine
                 client.SendMessage("test message");
                 //Slowing down with sleep to avoid triggering blizzard's anti spam protection
                 Thread.Sleep(1000);
+                client.SendEmote("test emoted message");
+                Thread.Sleep(1000);
                 client.SendWhisper("test whisper", 1);
             };
 
