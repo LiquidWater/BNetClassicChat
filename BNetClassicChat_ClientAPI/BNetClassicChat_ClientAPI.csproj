@@ -52,6 +52,7 @@
     <Compile Include="Resources\Constants.cs" />
     <Compile Include="Resources\EArgs\ChannelJoinArgs.cs" />
     <Compile Include="Resources\EArgs\ChatMessageArgs.cs" />
+    <Compile Include="Resources\EArgs\DisconnectArgs.cs" />
     <Compile Include="Resources\EArgs\UserJoinArgs.cs" />
     <Compile Include="Resources\EArgs\UserLeaveArgs.cs" />
     <Compile Include="Resources\Models\RequestResponseModel.cs" />

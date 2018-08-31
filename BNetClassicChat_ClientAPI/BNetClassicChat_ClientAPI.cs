@@ -16,7 +16,7 @@ namespace BNetClassicChat_ClientAPI
         private Object mutex = new Object();
         private bool isConnected = false, isReady = false;
         private int requestID = 0;
-        private string apiKey;
+        private string apiKey = null;
         private WebSocket socket = new WebSocket(Constants.TargetURL, "json");
         //TODO: Maybe use a more futureproof method of parsing instead of dict to func mapping
         private Dictionary<string, Action<RequestResponseModel>> msgHandlers;
@@ -95,7 +95,7 @@ namespace BNetClassicChat_ClientAPI
 
         private void _onsetmoderatorresponse_(RequestResponseModel msg)
         {
-            Debug.WriteLine("[RESPONSE]Send Set Moderator");
+            Debug.WriteLine("[RESPONSE]Set Moderator");
         }
         #endregion
         #region ImportantAsyncEvents
@@ -145,17 +145,250 @@ namespace BNetClassicChat_ClientAPI
         public event EventHandler<ChatMessageArgs> OnChatMessage;
         public event EventHandler<UserJoinArgs> OnUserJoin;
         public event EventHandler<UserLeaveArgs> OnUserLeave;
+        public event EventHandler<DisconnectArgs> OnDisconnect;
 
-        //TODO: Notify subscribers when ready, and notify when disconnected
-
-        public BNetClassicChat_Client(string apikey)
+        //Constructors and getters/setters
+        public BNetClassicChat_Client()
         {
-            //Basic input sanitation
-            if (apikey != null)
-                apiKey = apikey;
-            else
-                throw new ArgumentNullException("apiKey");
+            __InitializeObjects__();
+        }
 
+        public BNetClassicChat_Client(string key)
+        {
+            apiKey = key;
+            __InitializeObjects__();
+        }
+        public string APIKey
+        {
+            get { return apiKey; }
+            set {
+                if (isConnected)
+                    throw new InvalidOperationException("Cannot change APIKey when already connected");
+                apiKey = value;
+            }
+        }
+
+        //Functions for sending data to BNet
+        public void Connect()
+        {
+            if (apiKey.IsNullOrEmpty())
+                throw new InvalidOperationException("No api key specified!");
+            lock (mutex)
+            {
+                if (!isConnected)
+                {
+                    socket.ConnectAsync();
+                    isConnected = true;
+                }
+                else
+                    throw new InvalidOperationException("Already connected");
+            }
+        }
+
+        public void ConnectAsync()
+        {
+            Action dummyaction = Connect;
+            dummyaction.BeginInvoke(null, null);
+        }
+
+        public void Disconnect()
+        {
+            //TODO: Use the API disconnect call instead of simply closing the socket
+            lock (mutex)
+            {
+                if (isConnected)
+                {
+                    isConnected = false;
+                    isReady = false;
+                    socket.CloseAsync(CloseStatusCode.Normal);
+                }
+                else
+                    throw new InvalidOperationException("Not connected");
+            }
+        }
+
+        public void DisconnectAsync()
+        {
+            Action dummyaction = Disconnect;
+            dummyaction.BeginInvoke(null, null);
+        }
+
+        public void SendMessage(string msg)
+        {
+            __ActiveConnectionCheck__();
+            RequestResponseModel request = new RequestResponseModel()
+            {
+                Command = "Botapichat.SendMessageRequest",
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
+                Payload = new Dictionary<string, object>()
+                {
+                    {"message", msg }
+                }
+            };
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+
+            Debug.WriteLine("[REQUEST]Send Message: " + msg);
+        }
+
+        public void SendMessageAsync(string msg)
+        {
+            Action<string> dummyaction = SendMessage;
+            dummyaction.BeginInvoke(msg, null, null);
+        }
+
+        public void SendWhisper(string msg, ulong userid)
+        {
+            __ActiveConnectionCheck__();
+            RequestResponseModel request = new RequestResponseModel()
+            {
+                Command = "Botapichat.SendWhisperRequest",
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
+                Payload = new Dictionary<string, object>()
+                {
+                    {"message", msg },
+                    {"user_id", userid }
+                }
+            };
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+
+            Debug.WriteLine("[REQUEST]Send Whisper: " + userid + ": " + msg);
+        }
+
+        public void SendWhisperAsync(string msg, ulong userid)
+        {
+            Action<string, ulong> dummyaction = SendWhisper;
+            dummyaction.BeginInvoke(msg, userid, null, null);
+        }
+
+        public void BanUser(ulong userid)
+        {
+            __ActiveConnectionCheck__();
+            RequestResponseModel request = new RequestResponseModel()
+            {
+                Command = "Botapichat.BanUserRequest",
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
+                Payload = new Dictionary<string, object>()
+                {
+                    {"user_id", userid}
+                }
+            };
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+
+            Debug.WriteLine("[REQUEST]Ban user: " + userid);
+        }
+
+        public void BanUserAsync(ulong userid)
+        {
+            Action<ulong> dummyaction = BanUser;
+            dummyaction.BeginInvoke(userid, null, null);
+        }
+
+        public void UnbanUser(string toonname)
+        {
+            __ActiveConnectionCheck__();
+            RequestResponseModel request = new RequestResponseModel()
+            {
+                Command = "Botapichat.UnbanUserRequest",
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
+                Payload = new Dictionary<string, object>()
+                {
+                    //For some reason the api spec takes toonname instead of userid here??
+                    {"toon_name", toonname}
+                }
+            };
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+
+            Debug.WriteLine("[REQUEST]Unban user: " + toonname);
+        }
+
+        public void UnbanUserAsync(string toonname)
+        {
+            Action<string> dummyaction = UnbanUser;
+            dummyaction.BeginInvoke(toonname, null, null);
+        }
+
+        public void SendEmote(string emotemsg)
+        {
+            __ActiveConnectionCheck__();
+            RequestResponseModel request = new RequestResponseModel()
+            {
+                Command = "Botapichat.SendEmoteRequest",
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
+                Payload = new Dictionary<string, object>()
+                {
+                    {"message", emotemsg }
+                }
+            };
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+
+            Debug.WriteLine("[REQUEST]Send emote: " + emotemsg);
+        }
+
+        public void SendEmoteAsync(string emotemsg)
+        {
+            Action<string> dummyaction = SendEmote;
+            dummyaction.BeginInvoke(emotemsg, null, null);
+        }
+
+        public void KickUser(ulong userid)
+        {
+            __ActiveConnectionCheck__();
+            RequestResponseModel request = new RequestResponseModel()
+            {
+                Command = "Botapichat.KickUserRequest",
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
+                Payload = new Dictionary<string, object>()
+                {
+                    {"user_id", userid}
+                }
+            };
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+
+            Debug.WriteLine("[REQUEST]Kick user: " + userid);
+        }
+
+        public void KickUserAsync(ulong userid)
+        {
+            Action<ulong> dummyaction = KickUser;
+            dummyaction.BeginInvoke(userid, null, null);
+        }
+
+        public void SetModerator(ulong userid)
+        {
+            __ActiveConnectionCheck__();
+            RequestResponseModel request = new RequestResponseModel()
+            {
+                Command = "Botapichat.SendSetModeratorRequest",
+                RequestId = Interlocked.Exchange(ref requestID, requestID++),
+                Payload = new Dictionary<string, object>()
+                {
+                    {"user_id", userid}
+                }
+            };
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+
+            Debug.WriteLine("[REQUEST]Set moderator: " + userid);
+        }
+
+        public void SetModeratorAsync(ulong userid)
+        {
+            Action<ulong> dummyaction = SetModerator;
+            dummyaction.BeginInvoke(userid, null, null);
+        }
+        #endregion
+
+        #region PrivateHelpers
+        private void __ActiveConnectionCheck__()
+        {
+            lock (mutex)
+            {
+                if (!isConnected || !isReady)
+                    throw new InvalidOperationException("Websocket not connected or ready");
+            }
+        }
+
+        private void __InitializeObjects__()
+        {
             //Initializing commands to function mappings
             msgHandlers = new Dictionary<string, Action<RequestResponseModel>>()
             {
@@ -207,7 +440,7 @@ namespace BNetClassicChat_ClientAPI
                 RequestResponseModel msg = JsonConvert.DeserializeObject<RequestResponseModel>(args.Data);
                 try
                 {
-                   msgHandlers[msg.Command].BeginInvoke(msg, null, null);
+                    msgHandlers[msg.Command].BeginInvoke(msg, null, null);
                 }
                 catch (KeyNotFoundException)
                 {
@@ -218,10 +451,13 @@ namespace BNetClassicChat_ClientAPI
 
             socket.OnClose += (sender, args) =>
             {
+                DisconnectArgs dargs = new DisconnectArgs(args.Code, args.Reason, args.WasClean);
+
                 lock (mutex)
                 {
                     isConnected = false;
                     isReady = false;
+                    OnDisconnect?.BeginInvoke(this, dargs, null, null);
                     Debug.WriteLine("[SOCKET]Disconnected with code " + args.Code + ". Reason: " + args.Reason);
                 }
             };
@@ -231,223 +467,6 @@ namespace BNetClassicChat_ClientAPI
                 Debug.WriteLine("[ERROR] " + args.Message);
                 throw args.Exception;
             };
-        }
-
-        //Functions for sending data to BNet
-        public void Connect()
-        {
-            lock (mutex)
-            {
-                if (!isConnected)
-                {
-                    socket.ConnectAsync();
-                    isConnected = true;
-                }
-                else
-                    throw new InvalidOperationException("Already connected");
-            }
-        }
-
-        public void ConnectAsync()
-        {
-            Action dummyaction = Connect;
-            dummyaction.BeginInvoke(null, null);
-        }
-
-        public void Disconnect()
-        {
-            //TODO: Use the API disconnect call instead of simply closing the socket
-            lock (mutex)
-            {
-                if (isConnected)
-                {
-                    isConnected = false;
-                    isReady = false;
-                    socket.CloseAsync(CloseStatusCode.Normal);
-                }
-                else
-                    throw new InvalidOperationException("Not connected");
-            }
-        }
-
-        public void DisconnectAsync()
-        {
-            Action dummyaction = Disconnect;
-            dummyaction.BeginInvoke(null, null);
-        }
-
-        public void SendMessage(string msg)
-        {
-            ActiveConnectionCheck();
-            RequestResponseModel request = new RequestResponseModel()
-            {
-                Command = "Botapichat.SendMessageRequest",
-                RequestId = Interlocked.Exchange(ref requestID, requestID++),
-                Payload = new Dictionary<string, object>()
-                {
-                    {"message", msg }
-                }
-            };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
-
-            Debug.WriteLine("[REQUEST]Send Message: " + msg);
-        }
-
-        public void SendMessageAsync(string msg)
-        {
-            Action<string> dummyaction = SendMessage;
-            dummyaction.BeginInvoke(msg, null, null);
-        }
-
-        public void SendWhisper(string msg, ulong userid)
-        {
-            ActiveConnectionCheck();
-            RequestResponseModel request = new RequestResponseModel()
-            {
-                Command = "Botapichat.SendWhisperRequest",
-                RequestId = Interlocked.Exchange(ref requestID, requestID++),
-                Payload = new Dictionary<string, object>()
-                {
-                    {"message", msg },
-                    {"user_id", userid }
-                }
-            };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
-
-            Debug.WriteLine("[REQUEST]Send Whisper: " + userid + ": " + msg);
-        }
-
-        public void SendWhisperAsync(string msg, ulong userid)
-        {
-            Action<string, ulong> dummyaction = SendWhisper;
-            dummyaction.BeginInvoke(msg, userid, null, null);
-        }
-
-        public void BanUser(ulong userid)
-        {
-            ActiveConnectionCheck();
-            RequestResponseModel request = new RequestResponseModel()
-            {
-                Command = "Botapichat.BanUserRequest",
-                RequestId = Interlocked.Exchange(ref requestID, requestID++),
-                Payload = new Dictionary<string, object>()
-                {
-                    {"user_id", userid}
-                }
-            };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
-
-            Debug.WriteLine("[REQUEST]Ban user: " + userid);
-        }
-
-        public void BanUserAsync(ulong userid)
-        {
-            Action<ulong> dummyaction = BanUser;
-            dummyaction.BeginInvoke(userid, null, null);
-        }
-
-        public void UnbanUser(string toonname)
-        {
-            ActiveConnectionCheck();
-            RequestResponseModel request = new RequestResponseModel()
-            {
-                Command = "Botapichat.UnbanUserRequest",
-                RequestId = Interlocked.Exchange(ref requestID, requestID++),
-                Payload = new Dictionary<string, object>()
-                {
-                    //For some reason the api spec takes toonname instead of userid here??
-                    {"toon_name", toonname}
-                }
-            };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
-
-            Debug.WriteLine("[REQUEST]Unban user: " + toonname);
-        }
-
-        public void UnbanUserAsync(string toonname)
-        {
-            Action<string> dummyaction = UnbanUser;
-            dummyaction.BeginInvoke(toonname, null, null);
-        }
-
-        public void SendEmote(string emotemsg)
-        {
-            ActiveConnectionCheck();
-            RequestResponseModel request = new RequestResponseModel()
-            {
-                Command = "Botapichat.SendEmoteRequest",
-                RequestId = Interlocked.Exchange(ref requestID, requestID++),
-                Payload = new Dictionary<string, object>()
-                {
-                    {"message", emotemsg }
-                }
-            };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
-
-            Debug.WriteLine("[REQUEST]Send emote: " + emotemsg);
-        }
-
-        public void SendEmoteAsync(string emotemsg)
-        {
-            Action<string> dummyaction = SendEmote;
-            dummyaction.BeginInvoke(emotemsg, null, null);
-        }
-
-        public void KickUser(ulong userid)
-        {
-            ActiveConnectionCheck();
-            RequestResponseModel request = new RequestResponseModel()
-            {
-                Command = "Botapichat.KickUserRequest",
-                RequestId = Interlocked.Exchange(ref requestID, requestID++),
-                Payload = new Dictionary<string, object>()
-                {
-                    {"user_id", userid}
-                }
-            };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
-
-            Debug.WriteLine("[REQUEST]Kick user: " + userid);
-        }
-
-        public void KickUserAsync(ulong userid)
-        {
-            Action<ulong> dummyaction = KickUser;
-            dummyaction.BeginInvoke(userid, null, null);
-        }
-
-        public void SetModerator(ulong userid)
-        {
-            ActiveConnectionCheck();
-            RequestResponseModel request = new RequestResponseModel()
-            {
-                Command = "Botapichat.SendSetModeratorRequest",
-                RequestId = Interlocked.Exchange(ref requestID, requestID++),
-                Payload = new Dictionary<string, object>()
-                {
-                    {"user_id", userid}
-                }
-            };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
-
-            Debug.WriteLine("[REQUEST]Set moderator: " + userid);
-        }
-
-        public void SetModeratorAsync(ulong userid)
-        {
-            Action<ulong> dummyaction = SetModerator;
-            dummyaction.BeginInvoke(userid, null, null);
-        }
-        #endregion
-
-        #region PrivateHelpers
-        private void ActiveConnectionCheck()
-        {
-            lock (mutex)
-            {
-                if (!isConnected || !isReady)
-                    throw new InvalidOperationException("Websocket not connected or ready");
-            }
         }
         #endregion
     }
