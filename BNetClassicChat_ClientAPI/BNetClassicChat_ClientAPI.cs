@@ -158,10 +158,12 @@ namespace BNetClassicChat_ClientAPI
             apiKey = key;
             __InitializeObjects__();
         }
+
         public string APIKey
         {
             get { return apiKey; }
             set {
+                //Shouldnt need to lock here because we're just reading
                 if (isConnected)
                     throw new InvalidOperationException("Cannot change APIKey when already connected");
                 apiKey = value;
@@ -177,7 +179,7 @@ namespace BNetClassicChat_ClientAPI
             {
                 if (!isConnected)
                 {
-                    socket.ConnectAsync();
+                    socket.Connect();
                     isConnected = true;
                 }
                 else
@@ -200,7 +202,7 @@ namespace BNetClassicChat_ClientAPI
                 {
                     isConnected = false;
                     isReady = false;
-                    socket.CloseAsync(CloseStatusCode.Normal);
+                    socket.Close(CloseStatusCode.Normal);
                 }
                 else
                     throw new InvalidOperationException("Not connected");
@@ -465,7 +467,8 @@ namespace BNetClassicChat_ClientAPI
             socket.OnError += (sender, args) =>
             {
                 Debug.WriteLine("[ERROR] " + args.Message);
-                throw args.Exception;
+                if (args.Exception != null)
+                    throw args.Exception;
             };
         }
         #endregion

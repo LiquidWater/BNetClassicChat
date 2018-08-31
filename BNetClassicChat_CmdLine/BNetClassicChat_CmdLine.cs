@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using BNetClassicChat_ClientAPI;
 using System.Threading;
 
@@ -13,7 +14,7 @@ namespace BNetClassicChat_CmdLine
         static void Main(string[] args)
         {
             //Subscriber keeps track of userid to username and other info mapping
-            Dictionary<ulong, string> idtoname = new Dictionary<ulong, string>();
+            ConcurrentDictionary<ulong, string> idtoname = new ConcurrentDictionary<ulong, string>();
             
             //Blizz API key required to connect
             string apiKey = File.ReadAllLines("Config/APIKey.txt")[0];
@@ -29,9 +30,10 @@ namespace BNetClassicChat_CmdLine
                 //When this event fires, connection is established
                 Console.WriteLine("Joined channel " + e.ChannelName);
 
+                //Slowing down with sleep to avoid triggering blizzard's anti spam protection
+                Thread.Sleep(1000);
                 //Sending messages to the server
                 client.SendMessage("test message");
-                //Slowing down with sleep to avoid triggering blizzard's anti spam protection
                 Thread.Sleep(1000);
                 client.SendEmote("test emoted message");
                 Thread.Sleep(1000);
@@ -54,7 +56,7 @@ namespace BNetClassicChat_CmdLine
             {
                 try
                 {
-                    idtoname.Add(e.UserId, e.ToonName);
+                    idtoname.TryAdd(e.UserId, e.ToonName);
                     Console.WriteLine("User " + e.ToonName + " joined the channel.");
                 }
                 catch (Exception) { }
@@ -64,8 +66,9 @@ namespace BNetClassicChat_CmdLine
             {
                 try
                 {
-                    Console.WriteLine("User " + idtoname[e.UserId] + " has left the channel");
-                    idtoname.Remove(e.UserId);
+                    string temp = idtoname[e.UserId];
+                    Console.WriteLine("User " + temp + " has left the channel");
+                    idtoname.TryRemove(e.UserId, out temp);
                 }
                 catch (Exception) { }
             };
