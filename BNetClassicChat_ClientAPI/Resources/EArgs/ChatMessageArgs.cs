@@ -14,6 +14,13 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             MSG_EMOTE = 5
         };
 
+        public struct ChatMessageArgsBundle
+        {
+            public ulong UserID;
+            public string Message, MessageTypeAsString;
+            public MessageSource MessageType;
+        }
+
         private ulong userid;
         private string message, strmsgtype;
         private MessageSource msgtype;
@@ -63,6 +70,19 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
         public MessageSource MessageType
         {
             get { return msgtype; }
+        }
+
+        public ChatMessageArgsBundle ArgsBundle
+        {
+            get
+            {
+                ChatMessageArgsBundle bundle;
+                bundle.UserID = userid;
+                bundle.Message = message;
+                bundle.MessageTypeAsString = strmsgtype;
+                bundle.MessageType = msgtype;
+                return bundle;
+            }
         }
     }
 }

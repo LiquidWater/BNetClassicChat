@@ -14,20 +14,30 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             FLAG_MUTEWHISPER = 5
         };
 
+        public struct UserJoinArgsBundle
+        {
+            public ulong UserID;
+            public string ToonName, ProgramID, Rate, Rank, Wins, Flag1AsString, Flag2AsString;
+            public FlagCode Flag1, Flag2;
+        }
+
         private ulong userid;
-        private string toonname, programid, rate, rank, wins;
+        private string toonname, programid, rate, rank, wins, strflag1, strflag2;
         private FlagCode flag1, flag2;
 
         internal UserJoinArgs (ulong uid, string tn, string f1, string f2, string pid,
             string r1, string r2, string w)
         {
             userid = uid;
+
             toonname = tn;
             programid = pid;
             rate = r1;
             rank = r2;
             wins = w;
 
+            strflag1 = f1;
+            strflag2 = f2;
             flag1 = _stringtoflagcode_(f1);
             flag2 = _stringtoflagcode_(f2);
         }
@@ -61,6 +71,16 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             get { return toonname; }
         }
 
+        public string Flag1AsString
+        {
+            get { return strflag1; }
+        }
+
+        public string Flag2AsString
+        {
+            get { return strflag2; }
+        }
+
         public FlagCode Flag1
         {
             get { return flag1; }
@@ -89,6 +109,25 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
         public string Wins
         {
             get { return wins; }
+        }
+
+        public UserJoinArgsBundle ArgsBundle
+        {
+            get
+            {
+                UserJoinArgsBundle bundle;
+                bundle.UserID = userid;
+                bundle.ToonName = toonname;
+                bundle.Flag1AsString = strflag1;
+                bundle.Flag2AsString = strflag2;
+                bundle.Flag1 = flag1;
+                bundle.Flag2 = flag2;
+                bundle.ProgramID = programid;
+                bundle.Rate = rate;
+                bundle.Rank = rank;
+                bundle.Wins = wins;
+                return bundle;
+            }
         }
     }
 }
