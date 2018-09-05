@@ -115,13 +115,20 @@ namespace BNetClassicChat_ClientAPI
             //API responses here are inconsistent with spec document
             ulong user = Convert.ToUInt64(msg.Payload["user_id"]);
             string toonname = (string)msg.Payload["toon_name"];
-            //TODO: finish flags and attributes
+            //TODO: test this stuff
             /*
-            string flag1 = (string)(msg.Payload["flags"]);
-            string flag2 = (string)(msg.Payload["flags"]);
+            List<string> flags = (List<string>)(msg.Payload["flags"]);
+            Dictionary<string, string> attributes = (Dictionary<string, string>)(msg.Payload["attributes"]);
 
+            string flag1 = flags[0];
+            string flag2 = flags[1];
+            string pid = attributes["ProgramId"];
+            string rate = attributes["Rate"];
+            string rank = attributes["Rank"];
+            string wins = attributes["Wins"];
+
+            UserJoinArgs args = new UserJoinArgs(user, toonname, flag1, flag2, pid, rate, rank, wins);
             */
-
             UserJoinArgs args = new UserJoinArgs(user, toonname, "temp", "temp", "temp", "temp", "temp", "temp");
             OnUserJoin?.BeginInvoke(this, args, null, null);
 
