@@ -10,7 +10,7 @@ using WebSocketSharp;
 
 namespace BNetClassicChat_ClientAPI
 {
-    public class BNetClassicChat_Client
+    public class BNetClassicChat_Client : IDisposable
     {
         #region PrivateFields
         private Object mutex = new Object();
@@ -146,6 +146,7 @@ namespace BNetClassicChat_ClientAPI
 
         private void _onchatdisconnectevent_(RequestResponseModel msg)
         {
+            socket.CloseAsync();
             Debug.WriteLine("[EVENT]Disconnected");
         }
         #endregion
@@ -171,11 +172,15 @@ namespace BNetClassicChat_ClientAPI
             __InitializeObjects__();
         }
 
+        ~BNetClassicChat_Client()
+        {
+            Dispose();
+        }
+
         public string APIKey
         {
             get { return apiKey; }
             set {
-                //Shouldnt need to lock here because we're just reading
                 if (isConnected)
                     throw new InvalidOperationException("Cannot change APIKey when already connected");
                 apiKey = value;
@@ -207,18 +212,15 @@ namespace BNetClassicChat_ClientAPI
 
         public void Disconnect()
         {
-            //TODO: Use the API disconnect call instead of simply closing the socket
-            lock (mutex)
+            __ActiveConnectionCheck__();
+            RequestResponseModel request = new RequestResponseModel()
             {
-                if (isConnected)
-                {
-                    isConnected = false;
-                    isReady = false;
-                    socket.Close(CloseStatusCode.Normal);
-                }
-                else
-                    throw new InvalidOperationException("Not connected");
-            }
+                Command = "Botapichat.DisconnectRequest",
+                RequestId = Interlocked.Exchange(ref requestID, requestID++)
+            };
+            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+
+            Debug.WriteLine("[REQUEST]Disconnect");
         }
 
         public void DisconnectAsync()
@@ -306,7 +308,6 @@ namespace BNetClassicChat_ClientAPI
                 RequestId = Interlocked.Exchange(ref requestID, requestID++),
                 Payload = new Dictionary<string, object>()
                 {
-                    //For some reason the api spec takes toonname instead of userid here??
                     {"toon_name", toonname}
                 }
             };
@@ -388,6 +389,13 @@ namespace BNetClassicChat_ClientAPI
         {
             Action<ulong> dummyaction = SetModerator;
             dummyaction.BeginInvoke(userid, null, null);
+        }
+
+        //Implementing Disposeable interface
+        public void Dispose()
+        {
+            socket.Close();
+            ((IDisposable)socket).Dispose();
         }
         #endregion
 
