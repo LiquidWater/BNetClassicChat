@@ -37,7 +37,7 @@ namespace BNetClassicChat_ClientAPI
             socket.SendAsync(JsonConvert.SerializeObject(request), null);
         }
 
-        private void _onchatconnect_(RequestResponseModel msg)
+        private void _onchatconnectevent_(RequestResponseModel msg)
         {
             //Step 3: Recieving this response means login and connect is successful
             lock (mutex)
@@ -58,7 +58,7 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine("[RESPONSE]Chat Connect");
         }
 
-        private void _onchatdisconnect_(RequestResponseModel msg)
+        private void _onchatdisconnectresponse_(RequestResponseModel msg)
         {
             Debug.WriteLine("[RESPONSE]Disconnect");
         }
@@ -142,6 +142,11 @@ namespace BNetClassicChat_ClientAPI
             OnUserLeave?.BeginInvoke(this, args, null, null);
 
             Debug.WriteLine("[EVENT]User left: " + user);
+        }
+
+        private void _onchatdisconnectevent_(RequestResponseModel msg)
+        {
+            Debug.WriteLine("[EVENT]Disconnected");
         }
         #endregion
         #endregion
@@ -404,11 +409,11 @@ namespace BNetClassicChat_ClientAPI
                 //Handshake and initialization related responses
                 {"Botapiauth.AuthenticateResponse", _onauthresponse_},
                 {"Botapichat.ConnectResponse", _onchatconnectresponse_},
-                {"Botapichat.DisconnectResponse", _onchatdisconnect_}, //Not sure if necessary?
+                {"Botapichat.DisconnectResponse", _onchatdisconnectresponse_},
 
-                //Async responses loosely connected to handshake/init
-                {"Botapichat.ConnectEventRequest", _onchatconnect_},
-                {"Botapichat.DisconnectEventRequest", _onchatdisconnect_}, //Not sure if necessary?
+                //Async responses related to connection state
+                {"Botapichat.ConnectEventRequest", _onchatconnectevent_},
+                {"Botapichat.DisconnectEventRequest", _onchatdisconnectevent_},
 
                 //General responses when server acknowledges a request
                 {"Botapichat.SendMessageResponse", _onchatsendmessageresponse_},
