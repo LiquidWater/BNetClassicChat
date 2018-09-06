@@ -396,6 +396,7 @@ namespace BNetClassicChat_ClientAPI
         {
             socket.Close();
             ((IDisposable)socket).Dispose();
+            GC.SuppressFinalize(this);
         }
         #endregion
 
