@@ -112,26 +112,30 @@ namespace BNetClassicChat_ClientAPI
 
         private void _onuserupdateevent_(RequestResponseModel msg)
         {
-            //API responses here are inconsistent with spec document
             ulong user = Convert.ToUInt64(msg.Payload["user_id"]);
             string toonname = (string)msg.Payload["toon_name"];
-            //TODO: test this stuff
-            /*
-            List<string> flags = (List<string>)(msg.Payload["flags"]);
-            Dictionary<string, string> attributes = (Dictionary<string, string>)(msg.Payload["attributes"]);
+            UserJoinArgs args;
 
-            string flag1 = flags[0];
-            string flag2 = flags[1];
-            string pid = attributes["ProgramId"];
-            string rate = attributes["Rate"];
-            string rank = attributes["Rank"];
-            string wins = attributes["Wins"];
+            //API doesn't reply with a lot of the data here despite being documented in spec doc
+            try
+            {
+                List<string> flags = (List<string>)(msg.Payload["flags"]);
+                Dictionary<string, string> attributes = (Dictionary<string, string>)(msg.Payload["attributes"]);
 
-            UserJoinArgs args = new UserJoinArgs(user, toonname, flag1, flag2, pid, rate, rank, wins);
-            */
-            UserJoinArgs args = new UserJoinArgs(user, toonname, "temp", "temp", "temp", "temp", "temp", "temp");
+                string flag1 = flags[0];
+                string flag2 = flags[1];
+                string pid = attributes["ProgramId"];
+                string rate = attributes["Rate"];
+                string rank = attributes["Rank"];
+                string wins = attributes["Wins"];
+
+                args = new UserJoinArgs(user, toonname, flag1, flag2, pid, rate, rank, wins);
+            }
+            catch (Exception)
+            {
+                args = new UserJoinArgs(user, toonname, null, null, null, null, null, null);
+            }
             OnUserJoin?.BeginInvoke(this, args, null, null);
-
             Debug.WriteLine($"[EVENT]User joined: {user}: {toonname}");
         }
 
@@ -160,7 +164,7 @@ namespace BNetClassicChat_ClientAPI
         public event EventHandler<UserLeaveArgs> OnUserLeave;
         public event EventHandler<DisconnectArgs> OnDisconnect;
 
-        //Constructors and getters/setters
+        //Constructors/Destructors and getters/setters
         public BNetClassicChat_Client()
         {
             __InitializeObjects__();
@@ -474,15 +478,14 @@ namespace BNetClassicChat_ClientAPI
 
             socket.OnClose += (sender, args) =>
             {
-                DisconnectArgs dargs = new DisconnectArgs(args.Code, args.Reason, args.WasClean);
-
                 lock (mutex)
                 {
                     isConnected = false;
                     isReady = false;
-                    OnDisconnect?.BeginInvoke(this, dargs, null, null);
-                    Debug.WriteLine($"[SOCKET]Disconnected with code {args.Code}. Reason: {args.Reason}");
                 }
+                DisconnectArgs dargs = new DisconnectArgs(args.Code, args.Reason, args.WasClean);
+                OnDisconnect?.BeginInvoke(this, dargs, null, null);
+                Debug.WriteLine($"[SOCKET]Disconnected with code {args.Code}. Reason: {args.Reason}");
             };
 
             socket.OnError += (sender, args) =>
