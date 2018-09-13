@@ -35,6 +35,8 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
 
         private MessageSource _stringtomessagesource_(string s)
         {
+            if (string.IsNullOrEmpty(s))
+                return MessageSource.MSG_UNKNOWN;
             switch (s.ToLower())
             {
                 case "whisper":

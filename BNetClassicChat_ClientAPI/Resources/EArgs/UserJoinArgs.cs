@@ -44,6 +44,10 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
 
         private FlagCode _stringtoflagcode_ (string s)
         {
+            if (string.IsNullOrEmpty(s))
+            {
+                return FlagCode.FLAG_UNKNOWN;
+            }
             switch (s.ToLower())
             {
                 case "admin":
