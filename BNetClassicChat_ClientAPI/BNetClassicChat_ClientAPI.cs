@@ -1,11 +1,11 @@
-﻿using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using System.Threading;
-using BNetClassicChat_ClientAPI.Resources;
+﻿using BNetClassicChat_ClientAPI.Resources;
 using BNetClassicChat_ClientAPI.Resources.EArgs;
 using BNetClassicChat_ClientAPI.Resources.Models;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 using WebSocketSharp;
 
 namespace BNetClassicChat_ClientAPI
@@ -13,17 +13,22 @@ namespace BNetClassicChat_ClientAPI
     public class BNetClassicChat_Client : IDisposable
     {
         #region PrivateFields
+
         private Object mutex = new Object();
         private bool isConnected = false, isReady = false;
         private int requestID = 0;
         private string apiKey = null;
         private WebSocket socket = new WebSocket(Constants.TargetURL, "json");
+
         //TODO: Maybe use a more futureproof method of parsing instead of dict to func mapping
         private Dictionary<string, Action<RequestResponseModel>> msgHandlers;
-        #endregion
+
+        #endregion PrivateFields
 
         #region InternalMessageHandlers
+
         #region ConnectionHandshakeHandlers
+
         private void _onauthresponse_(RequestResponseModel msg)
         {
             //Step 2: Once auth accept response is received, attempt to connect to chat
@@ -50,8 +55,11 @@ namespace BNetClassicChat_ClientAPI
 
             Debug.WriteLine($"[EVENT]Entered channel: {channelname}");
         }
-        #endregion
+
+        #endregion ConnectionHandshakeHandlers
+
         #region RequestResponses
+
         //TODO: Handle potential errors for these responses
         private void _onchatconnectresponse_(RequestResponseModel msg)
         {
@@ -77,7 +85,7 @@ namespace BNetClassicChat_ClientAPI
         {
             Debug.WriteLine("[RESPONSE]Ban user");
         }
-        
+
         private void _onunbanuserresponse_(RequestResponseModel msg)
         {
             Debug.WriteLine("[RESPONSE]Unban user");
@@ -97,8 +105,11 @@ namespace BNetClassicChat_ClientAPI
         {
             Debug.WriteLine("[RESPONSE]Set Moderator");
         }
-        #endregion
+
+        #endregion RequestResponses
+
         #region ImportantAsyncEvents
+
         private void _onchatmessageevent_(RequestResponseModel msg)
         {
             ulong user = Convert.ToUInt64(msg.Payload["user_id"]);
@@ -153,15 +164,22 @@ namespace BNetClassicChat_ClientAPI
             socket.CloseAsync();
             Debug.WriteLine("[EVENT]Disconnected");
         }
-        #endregion
-        #endregion
+
+        #endregion ImportantAsyncEvents
+
+        #endregion InternalMessageHandlers
 
         #region PublicMethodsAndVariables
+
         //Subscribers must handle events in order to recieve messages
         public event EventHandler<ChannelJoinArgs> OnChannelJoin; //Connected when this event fires
+
         public event EventHandler<ChatMessageArgs> OnChatMessage;
+
         public event EventHandler<UserJoinArgs> OnUserJoin;
+
         public event EventHandler<UserLeaveArgs> OnUserLeave;
+
         public event EventHandler<DisconnectArgs> OnDisconnect;
 
         //Constructors/Destructors and getters/setters
@@ -184,7 +202,8 @@ namespace BNetClassicChat_ClientAPI
         public string APIKey
         {
             get { return apiKey; }
-            set {
+            set
+            {
                 if (isConnected)
                     throw new InvalidOperationException("Cannot change APIKey when already connected");
                 apiKey = value;
@@ -402,9 +421,11 @@ namespace BNetClassicChat_ClientAPI
             ((IDisposable)socket).Dispose();
             GC.SuppressFinalize(this);
         }
-        #endregion
+
+        #endregion PublicMethodsAndVariables
 
         #region PrivateHelpers
+
         private void __ActiveConnectionCheck__()
         {
             lock (mutex)
@@ -495,6 +516,7 @@ namespace BNetClassicChat_ClientAPI
                     throw args.Exception;
             };
         }
-        #endregion
+
+        #endregion PrivateHelpers
     }
 }

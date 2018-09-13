@@ -21,7 +21,7 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             public FlagCode Flag1, Flag2;
         }
 
-        internal UserJoinArgs (ulong uid, string tn, string f1, string f2, string pid,
+        internal UserJoinArgs(ulong uid, string tn, string f1, string f2, string pid,
             string r1, string r2, string w)
         {
             UserId = uid;
@@ -38,7 +38,7 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             Flag2 = _stringtoflagcode_(f2);
         }
 
-        private FlagCode _stringtoflagcode_ (string s)
+        private FlagCode _stringtoflagcode_(string s)
         {
             if (string.IsNullOrEmpty(s))
                 return FlagCode.FLAG_UNKNOWN;
@@ -46,14 +46,19 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             {
                 case "admin":
                     return FlagCode.FLAG_ADMIN;
+
                 case "moderator":
                     return FlagCode.FLAG_MODERATOR;
+
                 case "speaker":
                     return FlagCode.FLAG_SPEAKER;
+
                 case "muteglobal":
                     return FlagCode.FLAG_MUTEGLOBAL;
+
                 case "mutewhisper":
                     return FlagCode.FLAG_MUTEWHISPER;
+
                 default:
                     return FlagCode.FLAG_UNKNOWN;
             }

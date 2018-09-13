@@ -37,14 +37,19 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             {
                 case "whisper":
                     return MessageSource.MSG_WHISPER;
+
                 case "channel":
                     return MessageSource.MSG_CHANNEL;
+
                 case "serverinfo":
                     return MessageSource.MSG_SERVERINFO;
+
                 case "servererror":
                     return MessageSource.MSG_SERVERERROR;
+
                 case "emote":
                     return MessageSource.MSG_EMOTE;
+
                 default:
                     return MessageSource.MSG_UNKNOWN;
             }
