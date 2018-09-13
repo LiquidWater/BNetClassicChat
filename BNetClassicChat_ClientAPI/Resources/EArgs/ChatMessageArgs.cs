@@ -21,16 +21,12 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             public MessageSource MessageType;
         }
 
-        private ulong userid;
-        private string message, strmsgtype;
-        private MessageSource msgtype;
-
         internal ChatMessageArgs(ulong uid, string msg, string type)
         {
-            userid = uid;
-            message = msg;
-            strmsgtype = type;
-            msgtype = _stringtomessagesource_(type);
+            UserId = uid;
+            Message = msg;
+            MessageTypeAsString = type;
+            MessageType = _stringtomessagesource_(type);
         }
 
         private MessageSource _stringtomessagesource_(string s)
@@ -54,35 +50,23 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             }
         }
 
-        public ulong UserId
-        {
-            get { return userid; }
-        }
+        public ulong UserId { get; }
 
-        public string Message
-        {
-            get { return message; }
-        }
+        public string Message { get; }
 
-        public string MessageTypeAsString
-        {
-            get { return strmsgtype; }
-        }
+        public string MessageTypeAsString { get; }
 
-        public MessageSource MessageType
-        {
-            get { return msgtype; }
-        }
+        public MessageSource MessageType { get; }
 
         public ChatMessageArgsBundle ArgsBundle
         {
             get
             {
                 ChatMessageArgsBundle bundle;
-                bundle.UserID = userid;
-                bundle.Message = message;
-                bundle.MessageTypeAsString = strmsgtype;
-                bundle.MessageType = msgtype;
+                bundle.UserID = UserId;
+                bundle.Message = Message;
+                bundle.MessageTypeAsString = MessageTypeAsString;
+                bundle.MessageType = MessageType;
                 return bundle;
             }
         }

@@ -4,16 +4,11 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
 {
     public class ChannelJoinArgs : EventArgs
     {
-        private string cname;
-
         internal ChannelJoinArgs(string n)
         {
-            cname = n;
+            ChannelName = n;
         }
 
-        public string ChannelName
-        {
-            get{ return cname; }
-        }
+        public string ChannelName { get; }
     }
 }

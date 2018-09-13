@@ -21,33 +21,27 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             public FlagCode Flag1, Flag2;
         }
 
-        private ulong userid;
-        private string toonname, programid, rate, rank, wins, strflag1, strflag2;
-        private FlagCode flag1, flag2;
-
         internal UserJoinArgs (ulong uid, string tn, string f1, string f2, string pid,
             string r1, string r2, string w)
         {
-            userid = uid;
+            UserId = uid;
 
-            toonname = tn;
-            programid = pid;
-            rate = r1;
-            rank = r2;
-            wins = w;
+            ToonName = tn;
+            ProgramId = pid;
+            Rate = r1;
+            Rank = r2;
+            Wins = w;
 
-            strflag1 = f1;
-            strflag2 = f2;
-            flag1 = _stringtoflagcode_(f1);
-            flag2 = _stringtoflagcode_(f2);
+            Flag1AsString = f1;
+            Flag2AsString = f2;
+            Flag1 = _stringtoflagcode_(f1);
+            Flag2 = _stringtoflagcode_(f2);
         }
 
         private FlagCode _stringtoflagcode_ (string s)
         {
             if (string.IsNullOrEmpty(s))
-            {
                 return FlagCode.FLAG_UNKNOWN;
-            }
             switch (s.ToLower())
             {
                 case "admin":
@@ -65,71 +59,41 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             }
         }
 
-        public ulong UserId
-        {
-            get{ return userid; }
-        }
+        public ulong UserId { get; }
 
-        public string ToonName
-        {
-            get { return toonname; }
-        }
+        public string ToonName { get; }
 
-        public string Flag1AsString
-        {
-            get { return strflag1; }
-        }
+        public string Flag1AsString { get; }
 
-        public string Flag2AsString
-        {
-            get { return strflag2; }
-        }
+        public string Flag2AsString { get; }
 
-        public FlagCode Flag1
-        {
-            get { return flag1; }
-        }
+        public FlagCode Flag1 { get; }
 
-        public FlagCode Flag2
-        {
-            get { return flag2; }
-        }
+        public FlagCode Flag2 { get; }
 
-        public string ProgramId
-        {
-            get { return programid; }
-        }
+        public string ProgramId { get; }
 
-        public string Rate
-        {
-            get { return rate; }
-        }
+        public string Rate { get; }
 
-        public string Rank
-        {
-            get { return rank; }
-        }
+        public string Rank { get; }
 
-        public string Wins
-        {
-            get { return wins; }
-        }
+        public string Wins { get; }
 
         public UserJoinArgsBundle ArgsBundle
         {
             get
             {
                 UserJoinArgsBundle bundle;
-                bundle.UserID = userid;
-                bundle.ToonName = toonname;
-                bundle.Flag1AsString = strflag1;
-                bundle.Flag2AsString = strflag2;
-                bundle.Flag1 = flag1;
-                bundle.Flag2 = flag2;
-                bundle.ProgramID = programid;
-                bundle.Rate = rate;
-                bundle.Rank = rank;
-                bundle.Wins = wins;
+                bundle.UserID = UserId;
+                bundle.ToonName = ToonName;
+                bundle.Flag1AsString = Flag1AsString;
+                bundle.Flag2AsString = Flag2AsString;
+                bundle.Flag1 = Flag1;
+                bundle.Flag2 = Flag2;
+                bundle.ProgramID = ProgramId;
+                bundle.Rate = Rate;
+                bundle.Rank = Rank;
+                bundle.Wins = Wins;
                 return bundle;
             }
         }
