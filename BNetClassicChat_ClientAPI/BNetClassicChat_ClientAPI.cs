@@ -17,9 +17,7 @@ namespace BNetClassicChat_ClientAPI
         private Object mutex = new Object();
         private bool isConnected = false, isReady = false;
         private int requestID = 0;
-        private string apiKey = null;
         private WebSocket socket = new WebSocket(Constants.TargetURL, "json");
-
         //TODO: Maybe use a more futureproof method of parsing instead of dict to func mapping
         private Dictionary<string, Action<RequestResponseModel>> msgHandlers;
 
@@ -184,10 +182,14 @@ namespace BNetClassicChat_ClientAPI
 
         public event EventHandler<ErrorArgs> OnError;
 
+
         //Constructors/Destructors and getters/setters
+        //Doesnt matter if APIKey changes while connected because its only used during connect negotiation
+        public string APIKey { get; set; } = null;
+
         public BNetClassicChat_Client(string key = null)
         {
-            apiKey = key;
+            APIKey = key;
             __InitializeObjects__();
         }
 
@@ -196,17 +198,10 @@ namespace BNetClassicChat_ClientAPI
             Dispose();
         }
 
-        public string APIKey
-        {
-            get { return apiKey; }
-            //Doesnt matter if APIKey changes while connected because its only used during connect negotiation
-            set { apiKey = value; }
-        }
-
         //Functions for sending data to BNet
         public void Connect()
         {
-            if (apiKey.IsNullOrEmpty())
+            if (APIKey.IsNullOrEmpty())
                 throw new InvalidOperationException("No api key specified!");
             lock (mutex)
             {
@@ -469,7 +464,7 @@ namespace BNetClassicChat_ClientAPI
                     RequestId = Interlocked.Exchange(ref requestID, requestID++),
                     Payload = new Dictionary<string, object>()
                     {
-                        {"api_key", apiKey }
+                        {"api_key", APIKey }
                     }
                 };
                 socket.SendAsync(JsonConvert.SerializeObject(request), null);
