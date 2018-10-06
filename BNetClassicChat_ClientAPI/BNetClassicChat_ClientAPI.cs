@@ -180,7 +180,7 @@ namespace BNetClassicChat_ClientAPI
 
         public event EventHandler<DisconnectArgs> OnDisconnect;
 
-        public event EventHandler<ErrorArgs> OnError;
+        public event EventHandler<ErrorArgs> OnError; //Handling errors not required so far
 
 
         //Constructors/Destructors and getters/setters
@@ -503,6 +503,21 @@ namespace BNetClassicChat_ClientAPI
                 if (args.Exception != null)
                     throw args.Exception;
             };
+        }
+
+        private void __RequestResponseHelper__(RequestResponseModel msg)
+        {
+            try
+            {
+                int error = msg.Status.Code;
+                int area = msg.Status.Area;
+                ErrorArgs eargs = new ErrorArgs(error, area);
+                OnError?.BeginInvoke(this, eargs, null, null);
+            }
+            catch (Exception)
+            {
+                Debug.WriteLine("Some error code bug");
+            }
         }
 
         #endregion PrivateHelpers
