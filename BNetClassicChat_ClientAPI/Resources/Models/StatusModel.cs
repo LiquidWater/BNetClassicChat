@@ -1,14 +1,14 @@
-﻿using Newtonsoft.Json;
-using static BNetClassicChat_ClientAPI.Resources.Constants;
+﻿using BNetClassicChat_ClientAPI.Resources.EArgs;
+using Newtonsoft.Json;
 
 namespace BNetClassicChat_ClientAPI.Resources.Models
 {
     internal class StatusModel
     {
         [JsonProperty("area")]
-        public AreaCode Area { get; set; }
+        public ErrorArgs.AreaCode Area { get; set; }
 
         [JsonProperty("code")]
-        public ErrorCode Code { get; set; }
+        public ErrorArgs.ErrorCode Code { get; set; }
     }
 }

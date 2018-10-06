@@ -182,6 +182,8 @@ namespace BNetClassicChat_ClientAPI
 
         public event EventHandler<DisconnectArgs> OnDisconnect;
 
+        public event EventHandler<ErrorArgs> OnError;
+
         //Constructors/Destructors and getters/setters
         public BNetClassicChat_Client(string key = null)
         {
