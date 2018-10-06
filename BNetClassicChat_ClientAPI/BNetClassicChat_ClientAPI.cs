@@ -183,12 +183,7 @@ namespace BNetClassicChat_ClientAPI
         public event EventHandler<DisconnectArgs> OnDisconnect;
 
         //Constructors/Destructors and getters/setters
-        public BNetClassicChat_Client()
-        {
-            __InitializeObjects__();
-        }
-
-        public BNetClassicChat_Client(string key)
+        public BNetClassicChat_Client(string key = null)
         {
             apiKey = key;
             __InitializeObjects__();
@@ -202,12 +197,8 @@ namespace BNetClassicChat_ClientAPI
         public string APIKey
         {
             get { return apiKey; }
-            set
-            {
-                if (isConnected)
-                    throw new InvalidOperationException("Cannot change APIKey when already connected");
-                apiKey = value;
-            }
+            //Doesnt matter if APIKey changes while connected because its only used during connect negotiation
+            set { apiKey = value; }
         }
 
         //Functions for sending data to BNet
