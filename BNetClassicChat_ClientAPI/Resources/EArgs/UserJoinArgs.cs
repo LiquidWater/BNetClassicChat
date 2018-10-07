@@ -34,8 +34,6 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
 
             Flag1AsString = f1;
             Flag2AsString = f2;
-            Flag1 = _stringtoflagcode_(f1);
-            Flag2 = _stringtoflagcode_(f2);
         }
 
         private FlagCode _stringtoflagcode_(string s)
@@ -72,9 +70,15 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
 
         public string Flag2AsString { get; }
 
-        public FlagCode Flag1 { get; }
+        public FlagCode Flag1
+        {
+            get { return _stringtoflagcode_(Flag1AsString); }
+        }
 
-        public FlagCode Flag2 { get; }
+        public FlagCode Flag2
+        {
+            get { return _stringtoflagcode_(Flag2AsString); }
+        }
 
         public string ProgramId { get; }
 

@@ -58,49 +58,58 @@ namespace BNetClassicChat_ClientAPI
 
         #region RequestResponses
 
-        //TODO: Handle potential errors for these responses
+        //As of Alphav3, API does not fill in error codes
         private void _onchatconnectresponse_(RequestResponseModel msg)
         {
+            __RequestResponseHelper__(msg);
             Debug.WriteLine("[RESPONSE]Chat Connect");
         }
 
         private void _onchatdisconnectresponse_(RequestResponseModel msg)
         {
+            __RequestResponseHelper__(msg);
             Debug.WriteLine("[RESPONSE]Disconnect");
         }
 
         private void _onchatsendmessageresponse_(RequestResponseModel msg)
         {
+            __RequestResponseHelper__(msg);
             Debug.WriteLine("[RESPONSE]Message");
         }
 
         private void _onchatsendwhisperresponse_(RequestResponseModel msg)
         {
+            __RequestResponseHelper__(msg);
             Debug.WriteLine("[RESPONSE]Whisper");
         }
 
         private void _onbanuserresponse_(RequestResponseModel msg)
         {
+            __RequestResponseHelper__(msg);
             Debug.WriteLine("[RESPONSE]Ban user");
         }
 
         private void _onunbanuserresponse_(RequestResponseModel msg)
         {
+            __RequestResponseHelper__(msg);
             Debug.WriteLine("[RESPONSE]Unban user");
         }
 
         private void _onsendemoteresponse_(RequestResponseModel msg)
         {
+            __RequestResponseHelper__(msg);
             Debug.WriteLine("[RESPONSE]Send Emote");
         }
 
         private void _onkickuserresponse_(RequestResponseModel msg)
         {
+            __RequestResponseHelper__(msg);
             Debug.WriteLine("[RESPONSE]Kick user");
         }
 
         private void _onsetmoderatorresponse_(RequestResponseModel msg)
         {
+            __RequestResponseHelper__(msg);
             Debug.WriteLine("[RESPONSE]Set Moderator");
         }
 
@@ -507,17 +516,8 @@ namespace BNetClassicChat_ClientAPI
 
         private void __RequestResponseHelper__(RequestResponseModel msg)
         {
-            try
-            {
-                int error = msg.Status.Code;
-                int area = msg.Status.Area;
-                ErrorArgs eargs = new ErrorArgs(error, area);
-                OnError?.BeginInvoke(this, eargs, null, null);
-            }
-            catch (Exception)
-            {
-                Debug.WriteLine("Some error code bug");
-            }
+            ErrorArgs eargs = new ErrorArgs(msg.Status?.Code, msg.Status?.Area);
+            OnError?.BeginInvoke(this, eargs, null, null);
         }
 
         #endregion PrivateHelpers

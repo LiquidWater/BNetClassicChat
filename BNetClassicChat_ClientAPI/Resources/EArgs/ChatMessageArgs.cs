@@ -26,7 +26,6 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             UserId = uid;
             Message = msg;
             MessageTypeAsString = type;
-            MessageType = _stringtomessagesource_(type);
         }
 
         private MessageSource _stringtomessagesource_(string s)
@@ -61,7 +60,10 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
 
         public string MessageTypeAsString { get; }
 
-        public MessageSource MessageType { get; }
+        public MessageSource MessageType
+        {
+            get { return _stringtomessagesource_(MessageTypeAsString); }
+        }
 
         public ChatMessageArgsBundle ArgsBundle
         {

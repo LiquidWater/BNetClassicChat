@@ -22,14 +22,14 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
             AREA_2 = 6
         }
 
-        internal ErrorArgs(int error, int area)
+        internal ErrorArgs(int? error, int? area)
         {
-            if (Enum.IsDefined(typeof(AreaCode), area))
+            if (area.HasValue && Enum.IsDefined(typeof(AreaCode), area))
                 ACode = (AreaCode)area;
             else
                 ACode = AreaCode.AREA_UNKNOWN;
 
-            if (Enum.IsDefined(typeof(ErrorCode), error))
+            if (error.HasValue && Enum.IsDefined(typeof(ErrorCode), error))
                 ECode = (ErrorCode)error;
             else
                 ECode = ErrorCode.ERR_UNKNOWN;
