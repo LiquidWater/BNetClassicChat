@@ -20,9 +20,6 @@ namespace BNetClassicChat_CmdLine
             //Instantiate a new instance of the chat client
             BNetClassicChat_Client client = new BNetClassicChat_Client(apiKey);
 
-            //Calling connect will connect the client to battlenet
-            client.Connect();
-
             //Subscribing to all the events
             client.OnChannelJoin += (ob, e) =>
             {
@@ -71,6 +68,9 @@ namespace BNetClassicChat_CmdLine
                 }
                 catch (Exception) { }
             };
+
+            //Calling connect will connect the client to battlenet
+            client.Connect();
 
             Console.WriteLine("Press any key to disconnect");
             Console.ReadKey();

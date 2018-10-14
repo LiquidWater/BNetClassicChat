@@ -1,68 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3EDA798A-076A-42AF-85C0-0C9698269086}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BNetClassicChat_ClientAPI</RootNamespace>
-    <AssemblyName>BNetClassicChat_ClientAPI</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>Beta Release</Description>
+    <Authors>https://github.com/Liquidwater</Authors>
+    <Copyright>Copyright © 2018</Copyright>
+    <Company>https://github.com/Liquidwater</Company>
+    <AssemblyVersion>0.10.1.0</AssemblyVersion>
+    <FileVersion>0.10.1.0</FileVersion>
+    <Version>0.10</Version>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="websocket-sharp, Version=1.0.2.32519, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
-      <HintPath>..\packages\WebSocketSharp-NonPreRelease.1.0.0\lib\net35\websocket-sharp.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="BNetClassicChat_ClientAPI.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources\Constants.cs" />
-    <Compile Include="Resources\EArgs\ChannelJoinArgs.cs" />
-    <Compile Include="Resources\EArgs\ChatMessageArgs.cs" />
-    <Compile Include="Resources\EArgs\DisconnectArgs.cs" />
-    <Compile Include="Resources\EArgs\ErrorArgs.cs" />
-    <Compile Include="Resources\EArgs\UserJoinArgs.cs" />
-    <Compile Include="Resources\EArgs\UserLeaveArgs.cs" />
-    <Compile Include="Resources\Models\RequestResponseModel.cs" />
-    <Compile Include="Resources\Models\StatusModel.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

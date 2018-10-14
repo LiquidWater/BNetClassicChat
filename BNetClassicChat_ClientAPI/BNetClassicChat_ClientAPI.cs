@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using WebSocketSharp;
 
 namespace BNetClassicChat_ClientAPI
@@ -37,7 +38,7 @@ namespace BNetClassicChat_ClientAPI
                 Command = "Botapichat.ConnectRequest",
                 RequestId = Interlocked.Exchange(ref requestID, requestID++)
             };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+            socket.Send(JsonConvert.SerializeObject(request));
         }
 
         private void _onchatconnectevent_(RequestResponseModel msg)
@@ -49,7 +50,7 @@ namespace BNetClassicChat_ClientAPI
             }
             string channelname = (string)msg.Payload["channel"];
             ChannelJoinArgs c = new ChannelJoinArgs(channelname);
-            OnChannelJoin?.BeginInvoke(this, c, null, null);
+            OnChannelJoin?.Invoke(this, c);
 
             Debug.WriteLine($"[EVENT]Entered channel: {channelname}");
         }
@@ -123,7 +124,7 @@ namespace BNetClassicChat_ClientAPI
             string message = (string)msg.Payload["message"];
             string type = (string)msg.Payload["type"];
             ChatMessageArgs args = new ChatMessageArgs(user, message, type);
-            OnChatMessage?.BeginInvoke(this, args, null, null);
+            OnChatMessage?.Invoke(this, args);
 
             Debug.WriteLine($"[EVENT]Chat message [{type}] from UID {user}: {message}");
         }
@@ -153,7 +154,8 @@ namespace BNetClassicChat_ClientAPI
             {
                 args = new UserJoinArgs(user, toonname, null, null, null, null, null, null);
             }
-            OnUserJoin?.BeginInvoke(this, args, null, null);
+            OnUserJoin?.Invoke(this, args);
+
             Debug.WriteLine($"[EVENT]User joined: {user}: {toonname}");
         }
 
@@ -161,14 +163,14 @@ namespace BNetClassicChat_ClientAPI
         {
             ulong user = Convert.ToUInt64(msg.Payload["user_id"]);
             UserLeaveArgs args = new UserLeaveArgs(user);
-            OnUserLeave?.BeginInvoke(this, args, null, null);
+            OnUserLeave?.Invoke(this, args);
 
             Debug.WriteLine($"[EVENT]User left: {user}");
         }
 
         private void _onchatdisconnectevent_(RequestResponseModel msg)
         {
-            socket.CloseAsync();
+            socket.Close();
             Debug.WriteLine("[EVENT]Disconnected");
         }
 
@@ -224,10 +226,9 @@ namespace BNetClassicChat_ClientAPI
             }
         }
 
-        public void ConnectAsync()
+        public async Task ConnectAsync()
         {
-            Action dummyaction = Connect;
-            dummyaction.BeginInvoke(null, null);
+            await Task.Run(() => Connect());
         }
 
         public void Disconnect()
@@ -238,15 +239,14 @@ namespace BNetClassicChat_ClientAPI
                 Command = "Botapichat.DisconnectRequest",
                 RequestId = Interlocked.Exchange(ref requestID, requestID++)
             };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+            socket.Send(JsonConvert.SerializeObject(request));
 
             Debug.WriteLine("[REQUEST]Disconnect");
         }
 
-        public void DisconnectAsync()
+        public async Task DisconnectAsync()
         {
-            Action dummyaction = Disconnect;
-            dummyaction.BeginInvoke(null, null);
+            await Task.Run(() => Disconnect());
         }
 
         public void SendMessage(string msg)
@@ -261,15 +261,14 @@ namespace BNetClassicChat_ClientAPI
                     {"message", msg }
                 }
             };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+            socket.Send(JsonConvert.SerializeObject(request));
 
             Debug.WriteLine($"[REQUEST]Send Message: {msg}");
         }
 
-        public void SendMessageAsync(string msg)
+        public async Task SendMessageAsync(string msg)
         {
-            Action<string> dummyaction = SendMessage;
-            dummyaction.BeginInvoke(msg, null, null);
+            await Task.Run(() => SendMessage(msg));
         }
 
         public void SendWhisper(string msg, ulong userid)
@@ -285,15 +284,14 @@ namespace BNetClassicChat_ClientAPI
                     {"user_id", userid }
                 }
             };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+            socket.Send(JsonConvert.SerializeObject(request));
 
             Debug.WriteLine($"[REQUEST]Send Whisper: {userid}: {msg}");
         }
 
-        public void SendWhisperAsync(string msg, ulong userid)
+        public async Task SendWhisperAsync(string msg, ulong userid)
         {
-            Action<string, ulong> dummyaction = SendWhisper;
-            dummyaction.BeginInvoke(msg, userid, null, null);
+            await Task.Run(() => SendWhisper(msg, userid));
         }
 
         public void BanUser(ulong userid)
@@ -308,15 +306,14 @@ namespace BNetClassicChat_ClientAPI
                     {"user_id", userid}
                 }
             };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+            socket.Send(JsonConvert.SerializeObject(request));
 
             Debug.WriteLine($"[REQUEST]Ban user: {userid}");
         }
 
-        public void BanUserAsync(ulong userid)
+        public async Task BanUserAsync(ulong userid)
         {
-            Action<ulong> dummyaction = BanUser;
-            dummyaction.BeginInvoke(userid, null, null);
+            await Task.Run(() => BanUser(userid));
         }
 
         public void UnbanUser(string toonname)
@@ -331,15 +328,14 @@ namespace BNetClassicChat_ClientAPI
                     {"toon_name", toonname}
                 }
             };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+            socket.Send(JsonConvert.SerializeObject(request));
 
             Debug.WriteLine($"[REQUEST]Unban user: {toonname}");
         }
 
-        public void UnbanUserAsync(string toonname)
+        public async Task UnbanUserAsync(string toonname)
         {
-            Action<string> dummyaction = UnbanUser;
-            dummyaction.BeginInvoke(toonname, null, null);
+            await Task.Run(() => UnbanUser(toonname));
         }
 
         public void SendEmote(string emotemsg)
@@ -354,15 +350,14 @@ namespace BNetClassicChat_ClientAPI
                     {"message", emotemsg }
                 }
             };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+            socket.Send(JsonConvert.SerializeObject(request));
 
             Debug.WriteLine($"[REQUEST]Send emote: {emotemsg}");
         }
 
-        public void SendEmoteAsync(string emotemsg)
+        public async Task SendEmoteAsync(string emotemsg)
         {
-            Action<string> dummyaction = SendEmote;
-            dummyaction.BeginInvoke(emotemsg, null, null);
+            await Task.Run(() => SendEmote(emotemsg));
         }
 
         public void KickUser(ulong userid)
@@ -377,15 +372,14 @@ namespace BNetClassicChat_ClientAPI
                     {"user_id", userid}
                 }
             };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+            socket.Send(JsonConvert.SerializeObject(request));
 
             Debug.WriteLine($"[REQUEST]Kick user: {userid}");
         }
 
-        public void KickUserAsync(ulong userid)
+        public async Task KickUserAsync(ulong userid)
         {
-            Action<ulong> dummyaction = KickUser;
-            dummyaction.BeginInvoke(userid, null, null);
+            await Task.Run(() => KickUser(userid));
         }
 
         public void SetModerator(ulong userid)
@@ -400,15 +394,14 @@ namespace BNetClassicChat_ClientAPI
                     {"user_id", userid}
                 }
             };
-            socket.SendAsync(JsonConvert.SerializeObject(request), null);
+            socket.Send(JsonConvert.SerializeObject(request));
 
             Debug.WriteLine($"[REQUEST]Set moderator: {userid}");
         }
 
-        public void SetModeratorAsync(ulong userid)
+        public async Task SetModeratorAsync(ulong userid)
         {
-            Action<ulong> dummyaction = SetModerator;
-            dummyaction.BeginInvoke(userid, null, null);
+            await Task.Run(() => SetModerator(userid));
         }
 
         //Implementing Disposeable interface
@@ -476,7 +469,7 @@ namespace BNetClassicChat_ClientAPI
                         {"api_key", APIKey }
                     }
                 };
-                socket.SendAsync(JsonConvert.SerializeObject(request), null);
+                socket.Send(JsonConvert.SerializeObject(request));
                 //Continued in _onauthresponse_()
             };
 
@@ -485,7 +478,7 @@ namespace BNetClassicChat_ClientAPI
                 RequestResponseModel msg = JsonConvert.DeserializeObject<RequestResponseModel>(args.Data);
                 try
                 {
-                    msgHandlers[msg.Command].BeginInvoke(msg, null, null);
+                    msgHandlers[msg.Command].Invoke(msg);
                 }
                 catch (KeyNotFoundException)
                 {
@@ -502,7 +495,8 @@ namespace BNetClassicChat_ClientAPI
                     isReady = false;
                 }
                 DisconnectArgs dargs = new DisconnectArgs(args.Code, args.Reason, args.WasClean);
-                OnDisconnect?.BeginInvoke(this, dargs, null, null);
+                OnDisconnect?.Invoke(this, dargs);
+
                 Debug.WriteLine($"[SOCKET]Disconnected with code {args.Code}. Reason: {args.Reason}");
             };
 
@@ -517,7 +511,7 @@ namespace BNetClassicChat_ClientAPI
         private void __RequestResponseHelper__(RequestResponseModel msg)
         {
             ErrorArgs eargs = new ErrorArgs(msg.Status?.Code, msg.Status?.Area);
-            OnError?.BeginInvoke(this, eargs, null, null);
+            OnError?.Invoke(this, eargs);
         }
 
         #endregion PrivateHelpers
