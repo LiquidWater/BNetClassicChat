@@ -223,7 +223,7 @@ namespace BNetClassicChat_ClientAPI
         public string APIKey { get; set; } = null;
 
         /// <summary>
-        /// Creates a new instance of the CAPI client wrapper with an option to specify the API key
+        /// Creates a new instance of the CAPI client wrapper with an option to specify the API key.
         /// </summary>
         /// <param name="key">API key</param>
         public BNetClassicChat_Client(string key = null)
@@ -260,7 +260,7 @@ namespace BNetClassicChat_ClientAPI
         }
 
         /// <summary>
-        /// Async version of Connect()
+        /// Async version of Connect().
         /// </summary>
         /// <returns></returns>
         public async Task ConnectAsync()
@@ -270,7 +270,7 @@ namespace BNetClassicChat_ClientAPI
 
         /// <summary>
         /// Disconnect from BNet.
-        /// Should only be called after a successful connection has been established (ie. OnChannelJoin is raised)
+        /// Should only be called after a successful connection has been established (ie. OnChannelJoin is raised).
         /// </summary>
         public void Disconnect()
         {
@@ -286,7 +286,7 @@ namespace BNetClassicChat_ClientAPI
         }
 
         /// <summary>
-        /// Async version of Disconnect()
+        /// Async version of Disconnect().
         /// </summary>
         /// <returns></returns>
         public async Task DisconnectAsync()
@@ -295,7 +295,7 @@ namespace BNetClassicChat_ClientAPI
         }
 
         /// <summary>
-        /// Sends a message to battle.net.
+        /// Sends a message to the current channel.
         /// </summary>
         /// <param name="msg">Message to send</param>
         public void SendMessage(string msg)
@@ -316,7 +316,7 @@ namespace BNetClassicChat_ClientAPI
         }
 
         /// <summary>
-        /// Async version of SendMessage
+        /// Async version of SendMessage.
         /// </summary>
         /// <param name="msg">Message to send</param>
         /// <returns></returns>
@@ -325,6 +325,11 @@ namespace BNetClassicChat_ClientAPI
             await Task.Run(() => SendMessage(msg));
         }
 
+        /// <summary>
+        /// Sends a whisper message to a user.
+        /// </summary>
+        /// <param name="msg">Mesage to send</param>
+        /// <param name="userid">User to message</param>
         public void SendWhisper(string msg, ulong userid)
         {
             __ActiveConnectionCheck__();
@@ -343,11 +348,21 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine($"[REQUEST]Send Whisper: {userid}: {msg}");
         }
 
+        /// <summary>
+        /// Async version of SendWhisper().
+        /// </summary>
+        /// <param name="msg">Mesage to send</param>
+        /// <param name="userid">User to message</param>
+        /// <returns></returns>
         public async Task SendWhisperAsync(string msg, ulong userid)
         {
             await Task.Run(() => SendWhisper(msg, userid));
         }
 
+        /// <summary>
+        /// Bans a user from the channel.
+        /// </summary>
+        /// <param name="userid">User to ban</param>
         public void BanUser(ulong userid)
         {
             __ActiveConnectionCheck__();
@@ -365,11 +380,20 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine($"[REQUEST]Ban user: {userid}");
         }
 
+        /// <summary>
+        /// Async version of BanUser().
+        /// </summary>
+        /// <param name="userid">User to ban</param>
+        /// <returns></returns>
         public async Task BanUserAsync(ulong userid)
         {
             await Task.Run(() => BanUser(userid));
         }
 
+        /// <summary>
+        /// Unbans a user from the channel.
+        /// </summary>
+        /// <param name="toonname">User to unban</param>
         public void UnbanUser(string toonname)
         {
             __ActiveConnectionCheck__();
@@ -387,11 +411,21 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine($"[REQUEST]Unban user: {toonname}");
         }
 
+        /// <summary>
+        /// Async version of UnbanUser().
+        /// </summary>
+        /// <param name="toonname">User to unban</param>
+        /// <returns></returns>
         public async Task UnbanUserAsync(string toonname)
         {
             await Task.Run(() => UnbanUser(toonname));
         }
 
+        /// <summary>
+        /// Sends an emoted message to the channel.
+        /// </summary>
+        /// <param name="emotemsg">Message to send</param>
+        /// <returns></returns>
         public void SendEmote(string emotemsg)
         {
             __ActiveConnectionCheck__();
@@ -409,11 +443,20 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine($"[REQUEST]Send emote: {emotemsg}");
         }
 
+        /// <summary>
+        /// Async version of SendEmote().
+        /// </summary>
+        /// <param name="emotemsg">Message to send</param>
+        /// <returns></returns>
         public async Task SendEmoteAsync(string emotemsg)
         {
             await Task.Run(() => SendEmote(emotemsg));
         }
 
+        /// <summary>
+        /// Kicks a user from the channel.
+        /// </summary>
+        /// <param name="userid">User to kick</param>
         public void KickUser(ulong userid)
         {
             __ActiveConnectionCheck__();
@@ -431,11 +474,21 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine($"[REQUEST]Kick user: {userid}");
         }
 
+        /// <summary>
+        /// Async version of KickUser().
+        /// </summary>
+        /// <param name="userid">User to kick</param>
+        /// <returns></returns>
         public async Task KickUserAsync(ulong userid)
         {
             await Task.Run(() => KickUser(userid));
         }
 
+        /// <summary>
+        /// Sets a user to channel moderator.
+        /// Note that there is currently no way to unmod a user.
+        /// </summary>
+        /// <param name="userid">User to mod</param>
         public void SetModerator(ulong userid)
         {
             __ActiveConnectionCheck__();
@@ -453,6 +506,11 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine($"[REQUEST]Set moderator: {userid}");
         }
 
+        /// <summary>
+        /// Async version of SetModerator().
+        /// </summary>
+        /// <param name="userid">User to mod</param>
+        /// <returns></returns>
         public async Task SetModeratorAsync(ulong userid)
         {
             await Task.Run(() => SetModerator(userid));
