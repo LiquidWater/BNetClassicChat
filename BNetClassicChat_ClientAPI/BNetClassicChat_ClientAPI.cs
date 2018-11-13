@@ -53,9 +53,10 @@ namespace BNetClassicChat_ClientAPI
             }
             string channelname = (string)msg.Payload["channel"];
             ChannelJoinArgs c = new ChannelJoinArgs(channelname);
-            await Task.Run(() => OnChannelJoin?.Invoke(this, c));
+            Task t = Task.Run(() => OnChannelJoin?.Invoke(this, c));
 
             Debug.WriteLine($"[EVENT]Entered channel: {channelname}");
+            await t;
         }
 
         #endregion ConnectionHandshakeHandlers
@@ -65,56 +66,56 @@ namespace BNetClassicChat_ClientAPI
         //As of Alphav3, API does not fill in error codes
         private async Task _onchatconnectresponse_(RequestResponseModel msg)
         {
-            await Task.Run(() => __RequestResponseHelper__(msg));
             Debug.WriteLine("[RESPONSE]Chat Connect");
+            await Task.Run(() => __RequestResponseHelper__(msg));
         }
 
         private async Task _onchatdisconnectresponse_(RequestResponseModel msg)
         {
-            await Task.Run(() => __RequestResponseHelper__(msg));
             Debug.WriteLine("[RESPONSE]Disconnect");
+            await Task.Run(() => __RequestResponseHelper__(msg));
         }
 
         private async Task _onchatsendmessageresponse_(RequestResponseModel msg)
         {
-            await Task.Run(() => __RequestResponseHelper__(msg));
             Debug.WriteLine("[RESPONSE]Message");
+            await Task.Run(() => __RequestResponseHelper__(msg));
         }
 
         private async Task _onchatsendwhisperresponse_(RequestResponseModel msg)
         {
-            await Task.Run(() => __RequestResponseHelper__(msg));
             Debug.WriteLine("[RESPONSE]Whisper");
+            await Task.Run(() => __RequestResponseHelper__(msg));
         }
 
         private async Task _onbanuserresponse_(RequestResponseModel msg)
         {
-            await Task.Run(() => __RequestResponseHelper__(msg));
             Debug.WriteLine("[RESPONSE]Ban user");
+            await Task.Run(() => __RequestResponseHelper__(msg));
         }
 
         private async Task _onunbanuserresponse_(RequestResponseModel msg)
         {
-            await Task.Run(() => __RequestResponseHelper__(msg));
             Debug.WriteLine("[RESPONSE]Unban user");
+            await Task.Run(() => __RequestResponseHelper__(msg));
         }
 
         private async Task _onsendemoteresponse_(RequestResponseModel msg)
         {
-            await Task.Run(() => __RequestResponseHelper__(msg));
             Debug.WriteLine("[RESPONSE]Send Emote");
+            await Task.Run(() => __RequestResponseHelper__(msg));
         }
 
         private async Task _onkickuserresponse_(RequestResponseModel msg)
         {
-            await Task.Run(() => __RequestResponseHelper__(msg));
             Debug.WriteLine("[RESPONSE]Kick user");
+            await Task.Run(() => __RequestResponseHelper__(msg));
         }
 
         private async Task _onsetmoderatorresponse_(RequestResponseModel msg)
         {
-            await Task.Run(() => __RequestResponseHelper__(msg));
             Debug.WriteLine("[RESPONSE]Set Moderator");
+            await Task.Run(() => __RequestResponseHelper__(msg));
         }
 
         #endregion RequestResponses
@@ -127,9 +128,10 @@ namespace BNetClassicChat_ClientAPI
             string message = (string)msg.Payload["message"];
             string type = (string)msg.Payload["type"];
             ChatMessageArgs args = new ChatMessageArgs(user, message, type);
-            await Task.Run(() => OnChatMessage?.Invoke(this, args));
+            Task t = Task.Run(() => OnChatMessage?.Invoke(this, args));
 
             Debug.WriteLine($"[EVENT]Chat message [{type}] from UID {user}: {message}");
+            await t;
         }
 
         private async Task _onuserupdateevent_(RequestResponseModel msg)
@@ -157,24 +159,27 @@ namespace BNetClassicChat_ClientAPI
             {
                 args = new UserJoinArgs(user, toonname, null, null, null, null, null, null);
             }
-            await Task.Run(() => OnUserJoin?.Invoke(this, args));
+            Task t = Task.Run(() => OnUserJoin?.Invoke(this, args));
 
             Debug.WriteLine($"[EVENT]User joined: {user}: {toonname}");
+            await t;
         }
 
         private async Task _onuserleaveevent_(RequestResponseModel msg)
         {
             ulong user = Convert.ToUInt64(msg.Payload["user_id"]);
             UserLeaveArgs args = new UserLeaveArgs(user);
-            await Task.Run(() => OnUserLeave?.Invoke(this, args));
+            Task t = Task.Run(() => OnUserLeave?.Invoke(this, args));
 
             Debug.WriteLine($"[EVENT]User left: {user}");
+            await t;
         }
 
         private async Task _onchatdisconnectevent_(RequestResponseModel msg)
         {
-            await Task.Run(() => socket.Close());
+            Task t = Task.Run(() => socket.Close());
             Debug.WriteLine("[EVENT]Disconnected");
+            await t;
         }
 
         #endregion ImportantAsyncEvents
@@ -605,9 +610,10 @@ namespace BNetClassicChat_ClientAPI
                     isReady = false;
                 }
                 DisconnectArgs dargs = new DisconnectArgs(args.Code, args.Reason, args.WasClean);
-                await Task.Run(() => OnDisconnect?.Invoke(this, dargs));
+                Task t = Task.Run(() => OnDisconnect?.Invoke(this, dargs));
 
                 Debug.WriteLine($"[SOCKET]Disconnected with code {args.Code}. Reason: {args.Reason}");
+                await t;
             };
 
             socket.OnError += (sender, args) =>
