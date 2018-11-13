@@ -11,6 +11,9 @@ using WebSocketSharp;
 
 namespace BNetClassicChat_ClientAPI
 {
+    /// <summary>
+    /// C# wrapper for Blizzard's CAPI. This wrapper is threadsafe amd provides synchronous and asynchronous methods sending and recieving data.
+    /// </summary>
     public class BNetClassicChat_Client : IDisposable
     {
         #region PrivateFields
@@ -180,24 +183,49 @@ namespace BNetClassicChat_ClientAPI
 
         #region PublicMethodsAndVariables
 
-        //Subscribers must handle events in order to recieve messages
+        /// <summary>
+        /// Called when bot joins a channel.
+        /// Since there are no channel switch commands, this event should be considered the "connect success" event.
+        /// </summary>
         public event EventHandler<ChannelJoinArgs> OnChannelJoin; //Connected when this event fires
 
+        /// <summary>
+        /// Called when a chat message is received.
+        /// </summary>
         public event EventHandler<ChatMessageArgs> OnChatMessage;
 
+        /// <summary>
+        /// Called when a user joins the channel.
+        /// </summary>
         public event EventHandler<UserJoinArgs> OnUserJoin;
 
+        /// <summary>
+        /// Called when a user leaves the channel.
+        /// </summary>
         public event EventHandler<UserLeaveArgs> OnUserLeave;
 
+        /// <summary>
+        /// Called when the bot disconnects.
+        /// </summary>
         public event EventHandler<DisconnectArgs> OnDisconnect;
 
+        /// <summary>
+        /// Called when the API returns an error.
+        /// </summary>
         public event EventHandler<ErrorArgs> OnError; //Handling errors not required so far
 
 
         //Constructors/Destructors and getters/setters
-        //Doesnt matter if APIKey changes while connected because its only used during connect negotiation
+        /// <summary>
+        /// Changes the API key.
+        /// Doesnt matter if APIKey changes while connected because its only used during connection negotiation.
+        /// </summary>
         public string APIKey { get; set; } = null;
 
+        /// <summary>
+        /// Creates a new instance of the CAPI client wrapper with an option to specify the API key
+        /// </summary>
+        /// <param name="key">API key</param>
         public BNetClassicChat_Client(string key = null)
         {
             APIKey = key;
@@ -210,6 +238,11 @@ namespace BNetClassicChat_ClientAPI
         }
 
         //Functions for sending data to BNet
+        /// <summary>
+        /// Initiate a connection to battle.net.
+        /// Calling this function begins the handshake process, and does not necessarily mean a connection is successful.
+        /// The OnChannelJoin event is raised when it is successful.
+        /// </summary>
         public void Connect()
         {
             if (APIKey.IsNullOrEmpty())
@@ -226,11 +259,19 @@ namespace BNetClassicChat_ClientAPI
             }
         }
 
+        /// <summary>
+        /// Async version of Connect()
+        /// </summary>
+        /// <returns></returns>
         public async Task ConnectAsync()
         {
             await Task.Run(() => Connect());
         }
 
+        /// <summary>
+        /// Disconnect from BNet.
+        /// Should only be called after a successful connection has been established (ie. OnChannelJoin is raised)
+        /// </summary>
         public void Disconnect()
         {
             __ActiveConnectionCheck__();
@@ -244,11 +285,19 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine("[REQUEST]Disconnect");
         }
 
+        /// <summary>
+        /// Async version of Disconnect()
+        /// </summary>
+        /// <returns></returns>
         public async Task DisconnectAsync()
         {
             await Task.Run(() => Disconnect());
         }
 
+        /// <summary>
+        /// Sends a message to battle.net.
+        /// </summary>
+        /// <param name="msg">Message to send</param>
         public void SendMessage(string msg)
         {
             __ActiveConnectionCheck__();
@@ -266,6 +315,11 @@ namespace BNetClassicChat_ClientAPI
             Debug.WriteLine($"[REQUEST]Send Message: {msg}");
         }
 
+        /// <summary>
+        /// Async version of SendMessage
+        /// </summary>
+        /// <param name="msg">Message to send</param>
+        /// <returns></returns>
         public async Task SendMessageAsync(string msg)
         {
             await Task.Run(() => SendMessage(msg));
