@@ -246,8 +246,10 @@ namespace BNetClassicChat_ClientAPI
         /// <summary>
         /// Initiate a connection to battle.net.
         /// Calling this function begins the handshake process, and does not necessarily mean a connection is successful.
-        /// The OnChannelJoin event is raised when it is successful.
+        /// The <see cref="OnChannelJoin"/> event is raised when it is successful.
         /// </summary>
+        /// <exception cref="InvalidOperationException">No api key was provided</exception>
+        /// <exception cref="InvalidOperationException">Trying to connect when already connected</exception>
         public void Connect()
         {
             if (APIKey.IsNullOrEmpty())
@@ -274,9 +276,12 @@ namespace BNetClassicChat_ClientAPI
         }
 
         /// <summary>
-        /// Disconnect from BNet.
+        /// Disconnect from battle.net.
         /// Should only be called after a successful connection has been established (ie. OnChannelJoin is raised).
+        /// Calling this function begins the disconnect handshake process, and does not necessarily mean the client is disconnected.
+        /// The <see cref="OnDisconnect"/> event is raised when disconnected.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Attempting to disconnect before connecting</exception>
         public void Disconnect()
         {
             __ActiveConnectionCheck__();
