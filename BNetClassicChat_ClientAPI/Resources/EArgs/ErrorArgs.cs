@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 using System;
 
 namespace BNetClassicChat_ClientAPI.Resources.EArgs
@@ -58,7 +59,8 @@ namespace BNetClassicChat_ClientAPI.Resources.EArgs
 
         public ErrorCode ECode { get; }
 
-        public string ErrAsString {
+        public string ErrAsString
+        {
             get
             {
                 switch (ECode)

@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 using BNetClassicChat_ClientAPI.Resources;
 using BNetClassicChat_ClientAPI.Resources.EArgs;
 using BNetClassicChat_ClientAPI.Resources.Models;
@@ -41,6 +42,7 @@ namespace BNetClassicChat_ClientAPI
         private bool isConnected = false, isReady = false;
         private int requestID = 0;
         private WebSocket socket = new WebSocket(Constants.TargetURL, "json");
+
         //TODO: Maybe use a more futureproof method of parsing instead of dict to func mapping
         private Dictionary<string, Func<RequestResponseModel, Task>> msgHandlers;
 
@@ -610,7 +612,7 @@ namespace BNetClassicChat_ClientAPI
                         {"api_key", APIKey }
                     }
                 };
-                await Task.Run (() => socket.Send(JsonConvert.SerializeObject(request)));
+                await Task.Run(() => socket.Send(JsonConvert.SerializeObject(request)));
                 //Continued in _onauthresponse_()
             };
 
