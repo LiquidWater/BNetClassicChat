@@ -1,6 +1,4 @@
-﻿using System;
-
-/*
+﻿/*
     DisconnectArgs.cs: EventArgs for the OnDisconnect event
 
     Copyright (C) 2018 LiquidWater
@@ -19,6 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+ using System;
+
 namespace BNetClassicChat_ClientAPI.Resources.EArgs
 {
     public class DisconnectArgs : EventArgs
