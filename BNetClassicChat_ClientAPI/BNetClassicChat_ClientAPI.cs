@@ -201,6 +201,7 @@ namespace BNetClassicChat_ClientAPI
 
         /// <summary>
         /// Called when a user joins the channel.
+        /// Note that the API does not keep track of users currently in the channel.
         /// </summary>
         public event EventHandler<UserJoinArgs> OnUserJoin;
 
@@ -219,10 +220,9 @@ namespace BNetClassicChat_ClientAPI
         /// </summary>
         public event EventHandler<ErrorArgs> OnError; //Handling errors not required so far
 
-
         //Constructors/Destructors and getters/setters
         /// <summary>
-        /// Changes the API key.
+        /// Access the API key.
         /// Doesnt matter if APIKey changes while connected because its only used during connection negotiation.
         /// </summary>
         public string APIKey { get; set; } = null;
