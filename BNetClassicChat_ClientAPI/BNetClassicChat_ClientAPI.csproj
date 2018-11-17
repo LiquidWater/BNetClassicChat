@@ -2,13 +2,22 @@
   
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>Beta Release</Description>
+    <Description>API wrapper for Blizzard's battle.net classic chat api (CAPI). Beta Release compatible with alphav3 of the API. Source code available at https://github.com/LiquidWater/BNetClassicChat</Description>
     <Authors>https://github.com/Liquidwater</Authors>
     <Copyright>Copyright © 2018</Copyright>
     <Company>https://github.com/Liquidwater</Company>
     <AssemblyVersion>0.11.0.0</AssemblyVersion>
     <FileVersion>0.11.0.0</FileVersion>
     <Version>0.11.0.0</Version>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://github.com/LiquidWater/BNetClassicChat</PackageProjectUrl>
+    <PackageTags>Battle.net, CAPI, Classic, Blizzard, Blizzard Entertainment, Chat</PackageTags>
+    <PackageLicenseUrl>https://github.com/LiquidWater/BNetClassicChat/blob/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/LiquidWater/BNetClassicChat</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageReleaseNotes>Initial nuget commit</PackageReleaseNotes>
+    <Title>Battle Net Classic Chat API Wrapper</Title>
+    <PackageDescription>API wrapper for Blizzard's battle.net classic chat api (CAPI). Beta Release compatible with alphav3 of the API. Source code available at https://github.com/LiquidWater/BNetClassicChat</PackageDescription>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
